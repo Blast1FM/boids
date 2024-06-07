@@ -1,5 +1,7 @@
+#include <stdlib.h>
 #include "raylib.h"
 #include "raymath.h"
+#include "boid.h"
 
 int main(void)
 {
@@ -11,6 +13,11 @@ int main(void)
     SetConfigFlags(FLAG_MSAA_4X_HINT);
 
     InitWindow(screenWidth, screenHeight, "Boids");
+
+    Boid flock[128];
+
+    for (int i = 0; i < 128; i++)
+		flock[i] = *createBoid((Vector2){GetRandomValue(0, screenWidth), GetRandomValue(i, screenHeight)}, (Vector2){20, 20}, flock);
 
     Rectangle player = {0,0,50,50};
 
@@ -32,6 +39,11 @@ int main(void)
     {
         // Update
 
+        for(int i = 0; i<128; i++)
+        {
+            updateBoid(&flock[i]);
+        }
+
         if(IsKeyDown(KEY_A)) playerVelocity.x = -playerSpeed;
         if(IsKeyDown(KEY_D)) playerVelocity.x = playerSpeed;
 
@@ -51,6 +63,11 @@ int main(void)
             ClearBackground(RAYWHITE);
 
             BeginMode2D(camera);
+
+                for(int i = 0; i<128; i++)
+                {
+                    drawBoid(&flock[i]);
+                }
 
                 DrawRectangleRec(player, RED);
 

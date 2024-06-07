@@ -14,8 +14,7 @@ int main(void)
 
     Rectangle player = {0,0,50,50};
 
-    float playerHorizontalSpeed = 150.0f;
-    float playerVerticalSpeed = 150.0f;
+    float playerSpeed = 150.0f;
 
     Vector2 playerVelocity = {0.0f,0.0f};
 
@@ -33,14 +32,16 @@ int main(void)
     {
         // Update
 
-        if(IsKeyDown(KEY_A)) playerVelocity.x = -playerHorizontalSpeed;
-        if(IsKeyDown(KEY_D)) playerVelocity.x = playerHorizontalSpeed;
+        if(IsKeyDown(KEY_A)) playerVelocity.x = -playerSpeed;
+        if(IsKeyDown(KEY_D)) playerVelocity.x = playerSpeed;
 
-        if(IsKeyDown(KEY_W)) playerVelocity.y = -playerVerticalSpeed;
-        if(IsKeyDown(KEY_S)) playerVelocity.y = playerVerticalSpeed;
+        if(IsKeyDown(KEY_W)) playerVelocity.y = -playerSpeed;
+        if(IsKeyDown(KEY_S)) playerVelocity.y = playerSpeed;
 
         if(!(IsKeyDown(KEY_A) || IsKeyDown(KEY_D))) playerVelocity.x = 0;
         if(!(IsKeyDown(KEY_W) || IsKeyDown(KEY_S))) playerVelocity.y = 0;
+
+        playerVelocity = Vector2Scale(Vector2Normalize(playerVelocity), playerSpeed);
 
         player.x = player.x + playerVelocity.x * GetFrameTime();
         player.y = player.y + playerVelocity.y * GetFrameTime();

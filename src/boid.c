@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "raylib.h"
 #include "raymath.h"
 #include "boid.h"
@@ -49,5 +50,5 @@ void updateBoid(Boid* boid)
 
 void drawBoid(Boid* boid)
 {
-    DrawCircle(boid->position.x, boid->position.y, 20, RED);
+    DrawCircle(boid->position.x, boid->position.y, 10, RED);
 }

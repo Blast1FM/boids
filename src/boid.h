@@ -11,5 +11,5 @@ typedef struct Boid
 }Boid;
 
 Boid* createBoid(Vector2 position, Vector2 velocity, Boid* flock);
-void updateBoid(Boid* boid);
+void updateBoid(Boid* boid, int flockArrayLength);
 void drawBoid(Boid* boid);

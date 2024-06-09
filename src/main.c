@@ -17,7 +17,7 @@ int main(void)
     Boid flock[128];
 
     for (int i = 0; i < 128; i++)
-		flock[i] = *createBoid((Vector2){GetRandomValue(0, screenWidth), GetRandomValue(i, screenHeight)}, (Vector2){20, 20}, flock);
+		flock[i] = *createBoid((Vector2){GetRandomValue(-screenWidth, screenWidth), GetRandomValue(-screenHeight, screenHeight)}, (Vector2){GetRandomValue(-20,20), GetRandomValue(-20,20)}, flock);
 
     Rectangle player = {0,0,50,50};
 
@@ -41,7 +41,7 @@ int main(void)
 
         for(int i = 0; i<128; i++)
         {
-            updateBoid(&flock[i]);
+            updateBoid(&flock[i], 128);
         }
 
         if(IsKeyDown(KEY_A)) playerVelocity.x = -playerSpeed;

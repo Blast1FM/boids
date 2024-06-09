@@ -3,8 +3,8 @@
 #include "raymath.h"
 #include "boid.h"
 
-#define LOCAL_FLOCK_DISTANCE 250
-#define SEPARATION_RADIUS 100
+#define LOCAL_FLOCK_DISTANCE 300
+#define SEPARATION_RADIUS 30
 
 Boid *createBoid(Vector2 position, Vector2 velocity, Boid *flock)
 {
@@ -17,11 +17,10 @@ Boid *createBoid(Vector2 position, Vector2 velocity, Boid *flock)
     return boid;
 }
 
-Vector2 getSeparationVelocity(Boid* boid)
+Vector2 getSeparationVelocity(Boid* boid, int flockArrayLength)
 {
     float separationX = 0;
     float separationY = 0;
-    int flockArrayLength = sizeof(boid->flock)/sizeof(Boid);
     for (int i = 0; i<flockArrayLength; i++)
     {
         if(boid == &boid->flock[i]) continue;
@@ -34,14 +33,15 @@ Vector2 getSeparationVelocity(Boid* boid)
     return (Vector2){separationX, separationY};
 }
 
-void updateBoid(Boid* boid)
+void updateBoid(Boid* boid, int flockArrayLength)
 {
     double deltaTime = GetFrameTime();
+    float avoidFactor = 1.0f;
     Vector2 resultingVelocity = boid->velocity;
+    
+    Vector2 separationVelocity = getSeparationVelocity(boid, flockArrayLength);
 
-    Vector2 separationVelocity = getSeparationVelocity(boid);
-
-    resultingVelocity = Vector2Add(resultingVelocity, separationVelocity);
+    resultingVelocity = Vector2Add(resultingVelocity, Vector2Scale(separationVelocity, avoidFactor));
 
     boid->velocity = resultingVelocity;
     boid->position.x = boid->position.x + boid->velocity.x * deltaTime;

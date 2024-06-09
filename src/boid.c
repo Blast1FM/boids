@@ -33,10 +33,20 @@ Vector2 getSeparationVelocity(Boid* boid, int flockArrayLength)
     return (Vector2){separationX, separationY};
 }
 
+Vector2 getAlignmentVelocity(Boid* boid, int flockArrayLength)
+{
+    return Vector2Zero();
+}
+
+Vector2 getCohesionVelocity(Boid* boid, int flockArrayLength)
+{
+    return Vector2Zero();
+}
+
 void updateBoid(Boid* boid, int flockArrayLength)
 {
     double deltaTime = GetFrameTime();
-    float avoidFactor = 1.0f;
+    float avoidFactor = 0.5f;
     Vector2 resultingVelocity = boid->velocity;
     
     Vector2 separationVelocity = getSeparationVelocity(boid, flockArrayLength);
@@ -50,5 +60,5 @@ void updateBoid(Boid* boid, int flockArrayLength)
 
 void drawBoid(Boid* boid)
 {
-    DrawCircle(boid->position.x, boid->position.y, 10, RED);
+    DrawCircle(boid->position.x, boid->position.y, 5, RED);
 }

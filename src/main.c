@@ -17,7 +17,7 @@ int main(void)
     Boid flock[128];
 
     for (int i = 0; i < 128; i++)
-		flock[i] = *createBoid((Vector2){GetRandomValue(-screenWidth, screenWidth), GetRandomValue(-screenHeight, screenHeight)}, (Vector2){GetRandomValue(-0.5,0.5), GetRandomValue(-0.5,0.5)}, flock);
+		flock[i] = *createBoid((Vector2){GetRandomValue(-screenWidth, screenWidth), GetRandomValue(-screenHeight, screenHeight)}, (Vector2){GetRandomValue(-10,10), GetRandomValue(-10,10)}, flock);
 
     Rectangle player = {0,0,50,50};
 

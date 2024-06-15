@@ -17,77 +17,26 @@ Boid *createBoid(Vector2 position, Vector2 velocity, Boid *flock)
     return boid;
 }
 
-Vector2 getSeparationVelocity(Boid* boid, int flockArrayLength)
+Vector2 calculateWeightedSeparationVelocity(float* distance, Vector2* pos1, Vector2* pos2)
 {
-    float separationX = 0;
-    float separationY = 0;
-    for (int i = 0; i<flockArrayLength; i++)
-    {
-        if(boid == &boid->flock[i]) continue;
-        if(Vector2Distance(boid->position, boid->flock[i].position) < BOID_SEPARATION_RADIUS)
-        {
-            separationX += boid->position.x - boid->flock[i].position.x;
-            separationY += boid->position.y - boid->flock[i].position.y;
-        }
-    }
-    return (Vector2){separationX, separationY};
-}
-
-Vector2 getAverageNeighbourVelocity(Boid* boid, int flockArrayLength)
-{
-    float alignmentX = 0;
-    float alignmentY = 0;
-    int neighbours = 0;
-
-    for(int i = 0; i<flockArrayLength; i++)
-    {
-        if(boid == &boid->flock[i]) continue;
-
-        if(Vector2Distance(boid->position, boid->flock[i].position)<BOID_VISIBILITY_RADIUS)
-        {
-            neighbours += 1;
-            alignmentX += boid->flock[i].velocity.x;
-            alignmentY += boid->flock[i].velocity.y;
-        }
-    }
-    if(neighbours == 0) return Vector2Zero();
-    return (Vector2){alignmentX/(float)neighbours, alignmentY/(float)neighbours};
-}
-
-Vector2 getCohesionVelocity(Boid* boid, int flockArrayLength)
-{
-    float averageX = 0;
-    float averageY = 0;
-    float neighbours = 0;
-
-    for(int i = 0; i<flockArrayLength; i++)
-    {
-        if(boid==&boid->flock[i]) continue;
-        if(Vector2Distance(boid->position, boid->flock[i].position)<BOID_VISIBILITY_RADIUS)
-        {
-            neighbours+=1;
-            averageX += boid->flock[i].position.x;
-            averageY += boid->flock[i].position.y;
-        }
-    }
-    if (neighbours == 0) return Vector2Zero();
-    return (Vector2){averageX-boid->position.x, averageY-boid->position.y};
+    Vector2 separationDirection = Vector2Normalize(Vector2Subtract(*pos1,*pos2));
+    return (Vector2) Vector2Scale(separationDirection, 1.0f/(*distance));
 }
 
 void updateBoid(Boid* boid, int flockArrayLength)
 {
     double deltaTime = GetFrameTime();
-    float separationFactor = 1.0f;
+    float separationFactor = 0.5f;
     float alignmentFactor = 0.5f;
-    float cohesionFactor = 0.5f;
+    float cohesionFactor = 0.1f;
 
     int encroachingNeighbourCount = 0;
-    int visibleNeighbourCount = 0;
-
-    Vector2 finalVelocity = boid->velocity;
+    int alignmentNeighbourCount = 0;
+    int cohesionNeighbourCount = 0;
 
     Vector2 separationVelocity = Vector2Zero();
     Vector2 alignmentVelocity = Vector2Zero();
+    Vector2 localFlockCentre = Vector2Zero();
     Vector2 cohesionVelocity = Vector2Zero();
     
     for(int i = 0; i<flockArrayLength; i++)
@@ -96,14 +45,19 @@ void updateBoid(Boid* boid, int flockArrayLength)
         float distance = Vector2Distance(boid->position, boid->flock[i].position);
         if(distance < BOID_SEPARATION_RADIUS)
         {   
-            Vector2 separationDirection = Vector2Normalize((boid->position, boid->flock[i].position));
-            Vector2 weightedSeparationVelocity = Vector2Scale(separationDirection, 1.0f/distance);
-            separationVelocity = Vector2Add(separationVelocity, weightedSeparationVelocity);
+            // Separation logic
+            separationVelocity = Vector2Add(separationVelocity,
+            calculateWeightedSeparationVelocity(&distance, &(boid->position), &(boid->flock[i].position)));
             encroachingNeighbourCount++;
         }
         if(distance < BOID_VISIBILITY_RADIUS)
         {
-            //TODO alignment and cohesion logic
+            // Alignment logic
+            alignmentVelocity = Vector2Add(alignmentVelocity, boid->flock[i].velocity);
+            alignmentNeighbourCount++;
+            // Cohesion logic
+            localFlockCentre = Vector2Add(localFlockCentre, boid->flock[i].position);
+            cohesionNeighbourCount++;
         }
     }
 
@@ -113,7 +67,26 @@ void updateBoid(Boid* boid, int flockArrayLength)
         separationVelocity = Vector2Scale(separationVelocity, separationFactor);
     }
 
+    if(alignmentNeighbourCount > 0)
+    {
+        alignmentVelocity = Vector2Scale(alignmentVelocity, 1/alignmentNeighbourCount);
+        alignmentVelocity = Vector2Scale(alignmentVelocity, alignmentFactor);
+    }
+
+    if(cohesionNeighbourCount > 0)
+    {
+        localFlockCentre = Vector2Scale(localFlockCentre, 1/cohesionNeighbourCount);
+        Vector2 localFlockCentreDirection = Vector2Subtract(localFlockCentre, boid->position);
+        localFlockCentreDirection = Vector2Normalize(localFlockCentreDirection);
+        cohesionVelocity = Vector2Scale(localFlockCentreDirection, cohesionFactor);
+    }
+
     boid->velocity = Vector2Add(boid->velocity, separationVelocity);
+    boid->velocity = Vector2Add(boid->velocity, alignmentVelocity);
+    boid->velocity = Vector2Add(boid->velocity, cohesionVelocity);
+
+    // This is a crutch, TODO devise a more sophisticated speedlimit
+    boid->velocity = Vector2ClampValue(boid->velocity, 0, 50);
 
     boid->position.x = boid->position.x + boid->velocity.x * deltaTime;
     boid->position.y = boid->position.y + boid->velocity.y * deltaTime;
@@ -122,6 +95,6 @@ void updateBoid(Boid* boid, int flockArrayLength)
 void drawBoid(Boid* boid)
 {
     DrawCircleV(boid->position, 5, RED);
-    DrawCircleLinesV(boid->position,BOID_VISIBILITY_RADIUS, BLUE);
-    DrawCircleLinesV(boid->position,BOID_SEPARATION_RADIUS, GREEN);
+    //DrawCircleLinesV(boid->position,BOID_VISIBILITY_RADIUS, BLUE);
+    //DrawCircleLinesV(boid->position,BOID_SEPARATION_RADIUS, GREEN);
 }

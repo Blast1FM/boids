@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "boid.h"
+#include "boidParams.h"
 
 int main(void)
 {
@@ -15,8 +16,19 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "Boids");
 
     Boid flock[128];
+    
+    BoidParams params = 
+    {
+        params.flockArrayLength = 128,
+        params.separationRadius = 30,
+        params.visibilityRadius = 100,
+        params.maxSpeed = 50.0f,
+        params.separationFactor = 0.5f,
+        params.alignmentFactor = 0.5f,
+        params.cohesionFactor = 0.1f
+    };
 
-    for (int i = 0; i < 128; i++)
+    for (int i = 0; i < params.flockArrayLength; i++)
 		flock[i] = *createBoid(
             (Vector2){GetRandomValue(-screenWidth, screenWidth),
             GetRandomValue(-screenHeight, screenHeight)}, 
@@ -37,10 +49,9 @@ int main(void)
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
-
         for(int i = 0; i<128; i++)
         {
-            updateBoid(&flock[i], 128);
+            updateBoid(&flock[i], &params);
         }
 
         BeginDrawing();

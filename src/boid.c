@@ -2,9 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "boid.h"
-
-#define BOID_VISIBILITY_RADIUS 100
-#define BOID_SEPARATION_RADIUS 30
+#include "boidParams.h"
 
 Boid *createBoid(Vector2 position, Vector2 velocity, Boid *flock)
 {
@@ -23,12 +21,11 @@ Vector2 calculateWeightedSeparationVelocity(float* distance, Vector2* pos1, Vect
     return (Vector2) Vector2Scale(separationDirection, 1.0f/(*distance));
 }
 
-void updateBoid(Boid* boid, int flockArrayLength)
+void updateBoid(Boid* boid, BoidParams* params)
 {
     double deltaTime = GetFrameTime();
-    float separationFactor = 0.5f;
-    float alignmentFactor = 0.5f;
-    float cohesionFactor = 0.1f;
+
+    // TODO ideally check for params being null here
 
     int encroachingNeighbourCount = 0;
     int alignmentNeighbourCount = 0;
@@ -39,18 +36,18 @@ void updateBoid(Boid* boid, int flockArrayLength)
     Vector2 localFlockCentre = Vector2Zero();
     Vector2 cohesionVelocity = Vector2Zero();
     
-    for(int i = 0; i<flockArrayLength; i++)
+    for(int i = 0; i<params->flockArrayLength; i++)
     {
         if(boid == &boid->flock[i]) continue;
         float distance = Vector2Distance(boid->position, boid->flock[i].position);
-        if(distance < BOID_SEPARATION_RADIUS)
+        if(distance < params->separationRadius)
         {   
             // Separation logic
             separationVelocity = Vector2Add(separationVelocity,
             calculateWeightedSeparationVelocity(&distance, &(boid->position), &(boid->flock[i].position)));
             encroachingNeighbourCount++;
         }
-        if(distance < BOID_VISIBILITY_RADIUS)
+        if(distance < params->visibilityRadius)
         {
             // Alignment logic
             alignmentVelocity = Vector2Add(alignmentVelocity, boid->flock[i].velocity);
@@ -64,13 +61,13 @@ void updateBoid(Boid* boid, int flockArrayLength)
     if(encroachingNeighbourCount > 0)
     {
         separationVelocity = Vector2Scale(separationVelocity, 1/encroachingNeighbourCount);
-        separationVelocity = Vector2Scale(separationVelocity, separationFactor);
+        separationVelocity = Vector2Scale(separationVelocity, params->separationFactor);
     }
 
     if(alignmentNeighbourCount > 0)
     {
         alignmentVelocity = Vector2Scale(alignmentVelocity, 1/alignmentNeighbourCount);
-        alignmentVelocity = Vector2Scale(alignmentVelocity, alignmentFactor);
+        alignmentVelocity = Vector2Scale(alignmentVelocity, params->alignmentFactor);
     }
 
     if(cohesionNeighbourCount > 0)
@@ -78,7 +75,7 @@ void updateBoid(Boid* boid, int flockArrayLength)
         localFlockCentre = Vector2Scale(localFlockCentre, 1/cohesionNeighbourCount);
         Vector2 localFlockCentreDirection = Vector2Subtract(localFlockCentre, boid->position);
         localFlockCentreDirection = Vector2Normalize(localFlockCentreDirection);
-        cohesionVelocity = Vector2Scale(localFlockCentreDirection, cohesionFactor);
+        cohesionVelocity = Vector2Scale(localFlockCentreDirection, params->cohesionFactor);
     }
 
     boid->velocity = Vector2Add(boid->velocity, separationVelocity);
@@ -86,7 +83,7 @@ void updateBoid(Boid* boid, int flockArrayLength)
     boid->velocity = Vector2Add(boid->velocity, cohesionVelocity);
 
     // This is a crutch, TODO devise a more sophisticated speedlimit
-    boid->velocity = Vector2ClampValue(boid->velocity, 0, 50);
+    boid->velocity = Vector2ClampValue(boid->velocity, 0, params->maxSpeed);
 
     boid->position.x = boid->position.x + boid->velocity.x * deltaTime;
     boid->position.y = boid->position.y + boid->velocity.y * deltaTime;

@@ -17,18 +17,17 @@ int main(void)
 
     Boid flock[128];
     
-    BoidParams params = 
-    {
-        params.flockArrayLength = 128,
-        params.separationRadius = 30,
-        params.visibilityRadius = 100,
-        params.maxSpeed = 50.0f,
-        params.separationFactor = 0.5f,
-        params.alignmentFactor = 0.5f,
-        params.cohesionFactor = 0.1f
-    };
+    BoidParams* params = malloc(sizeof(BoidParams));
 
-    for (int i = 0; i < params.flockArrayLength; i++)
+    params->flockArrayLength = 128;
+    params->separationRadius = 30;
+    params->visibilityRadius = 100;
+    params->maxSpeed = 50.0f;
+    params->separationFactor = 10.5f;
+    params->alignmentFactor = 0.8f;
+    params->cohesionFactor = 0.1f;
+
+    for (int i = 0; i < params->flockArrayLength; i++)
 		flock[i] = *createBoid(
             (Vector2){GetRandomValue(-screenWidth, screenWidth),
             GetRandomValue(-screenHeight, screenHeight)}, 
@@ -51,7 +50,7 @@ int main(void)
         // Update
         for(int i = 0; i<128; i++)
         {
-            updateBoid(&flock[i], &params);
+            updateBoid(&flock[i], params);
         }
 
         BeginDrawing();

@@ -17,13 +17,12 @@ int main(void)
     Boid flock[128];
 
     for (int i = 0; i < 128; i++)
-		flock[i] = *createBoid((Vector2){GetRandomValue(-screenWidth, screenWidth), GetRandomValue(-screenHeight, screenHeight)}, (Vector2){GetRandomValue(-10,10), GetRandomValue(-10,10)}, flock);
-
-    Rectangle player = {0,0,50,50};
-
-    float playerSpeed = 150.0f;
-
-    Vector2 playerVelocity = {0.0f,0.0f};
+		flock[i] = *createBoid(
+            (Vector2){GetRandomValue(-screenWidth, screenWidth),
+            GetRandomValue(-screenHeight, screenHeight)}, 
+            (Vector2){GetRandomValue(-10,10), 
+            GetRandomValue(-10,10)}, 
+            flock);
 
     Camera2D camera = {0};
 
@@ -44,20 +43,6 @@ int main(void)
             updateBoid(&flock[i], 128);
         }
 
-        if(IsKeyDown(KEY_A)) playerVelocity.x = -playerSpeed;
-        if(IsKeyDown(KEY_D)) playerVelocity.x = playerSpeed;
-
-        if(IsKeyDown(KEY_W)) playerVelocity.y = -playerSpeed;
-        if(IsKeyDown(KEY_S)) playerVelocity.y = playerSpeed;
-
-        if(!(IsKeyDown(KEY_A) || IsKeyDown(KEY_D))) playerVelocity.x = 0;
-        if(!(IsKeyDown(KEY_W) || IsKeyDown(KEY_S))) playerVelocity.y = 0;
-
-        playerVelocity = Vector2Scale(Vector2Normalize(playerVelocity), playerSpeed);
-
-        player.x = player.x + playerVelocity.x * GetFrameTime();
-        player.y = player.y + playerVelocity.y * GetFrameTime();
-
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
@@ -68,8 +53,6 @@ int main(void)
                 {
                     drawBoid(&flock[i]);
                 }
-
-                DrawRectangleRec(player, RED);
 
             EndMode2D();
 

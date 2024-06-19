@@ -1,6 +1,6 @@
 Simple implementation of the boid algorithm by Craig Reynolds, written in C using raylib.
 
-A (probably outdated) version of this project can be seen on my [itch.io page](https://blastfm.itch.io/boids)
+A (probably outdated) version of this project can be found on my [itch.io page](https://blastfm.itch.io/boids)
 
 Building the project:
 

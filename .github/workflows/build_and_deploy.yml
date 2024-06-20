@@ -33,11 +33,16 @@ jobs:
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
 
     #TODO Add compile and install raylib (for web) job 
-    
-    - name: Install dependencies
-      #run: |
-        #sudo apt-get update
-        #sudo apt-get install -y libglfw3 libglfw3-dev
+    - name: Checkout raylib
+    - uses: actions/checkout@v4
+       - repository:'https://github.com/raysan5/raylib'
+       - path:'./raylib/'
+       
+    - name: Compile raylib for web
+      run: |
+        source emsdk/emsdk_env.sh
+        cd raylib
+        sudo make PLATFORM=PLATFORM_WEB -B
       shell: bash
 
     - name: Build project

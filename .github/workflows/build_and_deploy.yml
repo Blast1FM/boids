@@ -35,7 +35,8 @@ jobs:
     #TODO Add compile and install raylib (for web) job 
     - name: Checkout raylib
       uses: actions/checkout@v4
-         repository:'https://github.com/raysan5/raylib'
+      with:
+         repository: 'https://github.com/raysan5/raylib'
        
     - name: Compile raylib for web
       run: |

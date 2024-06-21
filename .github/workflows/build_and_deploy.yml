@@ -44,9 +44,12 @@ jobs:
 
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        path: boids
     
     - name: Build project
       run: |
+        cd boids
         source ${{ env.EMSDK }}/emsdk_env.sh
         emcc --version
         make EMSDK_PATH=${{ env.EMSDK }} PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING RAYLIB AND PYTHON PATHS TO THIS

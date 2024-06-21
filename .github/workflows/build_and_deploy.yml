@@ -37,6 +37,7 @@ jobs:
        
     - name: Compile raylib for web
       run: |
+        ls -l
         source ./emsdk/emsdk_env.sh
         cd raylib
         sudo make PLATFORM=PLATFORM_WEB -B

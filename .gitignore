@@ -1,7 +1,2 @@
 /target
 /src/*.o
-/boids
-/*.data
-/*.wasm
-/*.js
-/*.html

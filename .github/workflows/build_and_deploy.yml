@@ -28,20 +28,16 @@ jobs:
       with:
           version: ${{env.EM_VERSION}}
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
-
-    - name: Set up EMSDK env
-      run: |
-        source $EMSDK/emsdk_env.sh
-      shell: bash
-  
+      
     - name: Checkout raylib
       uses: actions/checkout@v4
       with:
          repository: 'raysan5/raylib'
          path: raylib
        
-    - name: Compile raylib for web
+    - name: Set up EMSDK env and compile raylib for web
       run: |
+        source $EMSDK/emsdk_env.sh
         cd ./raylib/src
         sudo make PLATFORM=PLATFORM_WEB -B
       shell: bash

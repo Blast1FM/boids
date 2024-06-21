@@ -60,10 +60,9 @@ jobs:
     - name: Setup Pages
       uses: actions/configure-pages@v3
       
-    - name: whereami
+    - name: Rename boids.html to index.html
       run: |
-        pwd
-        ls -l
+        mv ./boids/target/web/boids.html ./boids/target/web/index.html
         
     - name: Upload Artifact
       uses: actions/upload-pages-artifact@v3

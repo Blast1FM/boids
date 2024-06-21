@@ -47,6 +47,5 @@ jobs:
     
     - name: Build project
       run: |
-        source ${{env.EMSDK}}/emsdk_env.sh
-        make PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING PATHS TO THIS
+        make EMSDK_PATH=${{ env.EMSDK }} PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING MORE PATHS TO THIS
       shell: bash

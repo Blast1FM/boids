@@ -37,7 +37,7 @@ jobs:
        
     - name: Compile raylib for web
       run: |
-        cd raylib/src
+        cd ./src/
         sudo make PLATFORM=PLATFORM_WEB -B
       shell: bash
 

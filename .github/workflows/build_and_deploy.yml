@@ -37,7 +37,9 @@ jobs:
        
     - name: Set up EMSDK env and compile raylib for web
       run: |
+        emcc --version
         source $EMSDK/emsdk_env.sh
+        emcc --version
         cd ./raylib/src
         sudo make PLATFORM=PLATFORM_WEB -B
       shell: bash

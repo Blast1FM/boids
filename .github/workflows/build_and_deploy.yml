@@ -58,7 +58,7 @@ jobs:
       shell: bash
 
     - name: Upload Artifact
-      uses: actions/upload-pages-articaft@v3
+      uses: actions/upload-pages-artifact@v3
       with:
         name: boids
         path: target/web

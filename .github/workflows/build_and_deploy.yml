@@ -63,6 +63,7 @@ jobs:
     - name: whereami
       run: |
         pwd
+        ls -l
         
     - name: Upload Artifact
       uses: actions/upload-pages-artifact@v3

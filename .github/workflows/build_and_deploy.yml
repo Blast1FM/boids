@@ -38,7 +38,7 @@ jobs:
     - name: Compile raylib for web
       run: |
         ls -l
-        source $(EMSDK)/emsdk_env.sh
+        source ${{env.EMSDK}}/emsdk_env.sh
         cd raylib
         sudo make PLATFORM=PLATFORM_WEB -B
       shell: bash
@@ -48,7 +48,7 @@ jobs:
     
     - name: Build project
       run: |
-        source $(EMSDK)emsdk_env.sh
+        source ${{env.EMSDK}}/emsdk_env.sh
         make PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING PATHS TO THIS
       shell: bash
 

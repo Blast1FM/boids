@@ -37,7 +37,7 @@ jobs:
        
     - name: Check EMSDK version and compile raylib for web
       run: |
-        source ${{ env.EM_CACHE_FOLDER }}/emsdk_env.sh
+        source ../${{ env.EM_CACHE_FOLDER }}/emsdk_env.sh
         emcc --version
         cd ./raylib/src
         make EMSDK_PATH=${{ env.EM_CACHE_FOLDER }} PLATFORM=PLATFORM_WEB -B

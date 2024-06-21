@@ -29,11 +29,16 @@ jobs:
           version: ${{env.EM_VERSION}}
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
 
-    #TODO Add compile and install raylib (for web) job 
+    - name: Set up EMSDK env
+      run: |
+        ls -l
+      shell: bash
+  
     - name: Checkout raylib
       uses: actions/checkout@v4
       with:
          repository: 'raysan5/raylib'
+         path: raylib
        
     - name: Compile raylib for web
       run: |

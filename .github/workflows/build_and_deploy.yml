@@ -35,13 +35,11 @@ jobs:
          repository: 'raysan5/raylib'
          path: raylib
        
-    - name: Set up EMSDK env and compile raylib for web
+    - name: Check EMSDK version and compile raylib for web
       run: |
         emcc --version
-        source $EMSDK/emsdk_env.sh
-        emcc --version
         cd ./raylib/src
-        sudo make PLATFORM=PLATFORM_WEB -B
+        sudo make EMSDK_PATH=$EMSDK PLATFORM=PLATFORM_WEB -B
       shell: bash
 
     - name: Checkout repository

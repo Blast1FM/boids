@@ -39,7 +39,7 @@ jobs:
       run: |
         emcc --version
         cd ./raylib/src
-        whereis emcc
+        source ${{env.EMSDK}}/emsdk_env.sh
         sudo make EMSDK_PATH=${{env.EMSDK}} PLATFORM=PLATFORM_WEB -B
       shell: bash
 
@@ -51,9 +51,3 @@ jobs:
         source ${{env.EMSDK}}/emsdk_env.sh
         make PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING PATHS TO THIS
       shell: bash
-
-   # - name: Deploy to GitHub Pages
-      #uses: peaceiris/actions-gh-pages@v3
-      #with:
-        #github_token: ${{ secrets.GITHUB_TOKEN }}
-        #publish_dir: ./  # Directory to deploy (make sure it contains index.html and other necessary files)

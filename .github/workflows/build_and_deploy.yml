@@ -37,10 +37,10 @@ jobs:
        
     - name: Check EMSDK version and compile raylib for web
       run: |
+        source ${{ env.EM_CACHE_FOLDER }}/emsdk_env.sh
         emcc --version
         cd ./raylib/src
-        source ${{env.EMSDK}}/emsdk_env.sh
-        sudo make EMSDK_PATH=${{env.EMSDK}} PLATFORM=PLATFORM_WEB -B
+        make EMSDK_PATH=${{ env.EM_CACHE_FOLDER }} PLATFORM=PLATFORM_WEB -B
       shell: bash
 
     - name: Checkout repository

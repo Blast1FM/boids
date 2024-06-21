@@ -1,5 +1,5 @@
 env:
-  EM_VERSION: 1.39.18
+  EM_VERSION: 3.1.61
   EM_CACHE_FOLDER: 'emsdk-cache'
 
 name: Build and Deploy
@@ -16,10 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
+    steps:   
     - name: Setup cache
       id: cache-system-libraries
       uses: actions/cache@v2
@@ -27,27 +24,35 @@ jobs:
           path: ${{env.EM_CACHE_FOLDER}}
           key: ${{env.EM_VERSION}}-${{ runner.os }}
     - name: Setup emsdk
-    - uses: mymindstorm/setup-emsdk@v14
+      uses: mymindstorm/setup-emsdk@v14
       with:
           version: ${{env.EM_VERSION}}
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
-
-    #TODO Add compile and install raylib (for web) job 
-    
-    - name: Install dependencies
-      #run: |
-        #sudo apt-get update
-        #sudo apt-get install -y libglfw3 libglfw3-dev
+      
+    - name: Checkout raylib
+      uses: actions/checkout@v4
+      with:
+         repository: 'raysan5/raylib'
+         path: raylib
+       
+    - name: Check EMSDK version and compile raylib for web
+      run: |
+        emcc --version
+        cd ./raylib/src
+        make EMSDK_PATH=${{ env.EMSDK }} PLATFORM=PLATFORM_WEB -B
+        sudo make install
       shell: bash
 
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        path: boids
+    
     - name: Build project
       run: |
-        source emsdk/emsdk_env.sh
-        make PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING PATHS TO THIS
+        cd boids
+        source ${{ env.EMSDK }}/emsdk_env.sh
+        emcc --version
+        ls ..
+        make EMSDK_PATH=${{ env.EMSDK }} RAYLIB_PATH=../raylib PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING RAYLIB AND PYTHON PATHS TO THIS
       shell: bash
-
-   # - name: Deploy to GitHub Pages
-      #uses: peaceiris/actions-gh-pages@v3
-      #with:
-        #github_token: ${{ secrets.GITHUB_TOKEN }}
-        #publish_dir: ./  # Directory to deploy (make sure it contains index.html and other necessary files)

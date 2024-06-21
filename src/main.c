@@ -27,6 +27,8 @@ int main(void)
     params->alignmentFactor = 0.8f;
     params->cohesionFactor = 0.1f;
 
+    bool drawBoidRadii = false;
+
     for (int i = 0; i < params->flockArrayLength; i++)
 		flock[i] = *createBoid(
             (Vector2){GetRandomValue(-screenWidth, screenWidth),
@@ -53,6 +55,8 @@ int main(void)
             updateBoid(&flock[i], params);
         }
 
+        if(IsKeyPressed(KEY_R)) drawBoidRadii = !drawBoidRadii;
+
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
@@ -61,7 +65,7 @@ int main(void)
 
                 for(int i = 0; i<128; i++)
                 {
-                    drawBoid(&flock[i]);
+                    drawBoid(&flock[i], params, drawBoidRadii);
                 }
 
             EndMode2D();

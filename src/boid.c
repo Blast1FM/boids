@@ -89,9 +89,12 @@ void updateBoid(Boid* boid, BoidParams* params)
     boid->position.y = boid->position.y + boid->velocity.y * deltaTime;
 }
 
-void drawBoid(Boid* boid)
+void drawBoid(Boid* boid, BoidParams* params, bool drawRadii)
 {
     DrawCircleV(boid->position, 5, RED);
-    //DrawCircleLinesV(boid->position,BOID_VISIBILITY_RADIUS, BLUE);
-    //DrawCircleLinesV(boid->position,BOID_SEPARATION_RADIUS, GREEN);
+    if(drawRadii)
+    {
+        DrawCircleLinesV(boid->position,params->visibilityRadius, BLUE);
+        DrawCircleLinesV(boid->position,params->separationRadius, GREEN);
+    }
 }

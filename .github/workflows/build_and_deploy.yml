@@ -57,6 +57,13 @@ jobs:
         make EMSDK_PATH=${{ env.EMSDK }} RAYLIB_PATH=../raylib PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING RAYLIB AND PYTHON PATHS TO THIS
       shell: bash
 
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+      
+    - name: whereami
+      run: |
+        pwd
+        
     - name: Upload Artifact
       uses: actions/upload-pages-artifact@v3
       with:

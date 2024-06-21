@@ -31,9 +31,9 @@ PLATFORM              ?= PLATFORM_DESKTOP
 # Define project variables
 PROJECT_NAME          ?= boids
 PROJECT_VERSION       ?= 1.0
-PROJECT_BUILD_PATH    ?= .
+PROJECT_BUILD_PATH    ?= ./target
 
-RAYLIB_PATH           ?= /home/blast/documents/util_packages/raylib
+RAYLIB_PATH           ?= path/to/raylib
 
 # Locations of raylib.h and libraylib.a/libraylib.so
 # NOTE: Those variables are only used for PLATFORM_OS: LINUX, BSD
@@ -152,7 +152,7 @@ RAYLIB_RELEASE_PATH 	?= $(RAYLIB_PATH)/src
 ifeq ($(OS),Windows_NT)
     ifeq ($(PLATFORM),PLATFORM_WEB)
         # Emscripten required variables
-        EMSDK_PATH         ?= /home/blast/documents/util_packages/emsdk
+        EMSDK_PATH         ?= path/to/emsdk
         EMSCRIPTEN_PATH    ?= $(EMSDK_PATH)/upstream/emscripten
         CLANG_PATH          = $(EMSDK_PATH)/upstream/bin
         PYTHON_PATH         = /usr/bin/python
@@ -423,9 +423,14 @@ endif
 all:
 	$(MAKE) $(MAKEFILE_PARAMS)
 
+ifeq ($(PLATFORM), PLATFORM_WEB)
+    PROJECT_BUILD_PATH:=./target/web
+endif
+
 # Project target defined by PROJECT_NAME
 $(PROJECT_NAME): $(OBJS)
-	$(CC) -o $(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
+	mkdir -p $(PROJECT_BUILD_PATH)
+	$(CC) -o $(PROJECT_BUILD_PATH)/$(PROJECT_NAME)$(EXT) $(OBJS) $(CFLAGS) $(INCLUDE_PATHS) $(LDFLAGS) $(LDLIBS) -D$(PLATFORM)
 
 # Compile source files
 # NOTE: This pattern will compile every module defined on $(OBJS)
@@ -440,7 +445,7 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
 		$(PROJECT_NAME)
     endif
     ifeq ($(PLATFORM_OS),LINUX)
-		./$(PROJECT_NAME)
+		./$(PROJECT_NAME)/
     endif
     ifeq ($(PLATFORM_OS),OSX)
 		./$(PROJECT_NAME)

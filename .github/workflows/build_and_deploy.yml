@@ -47,5 +47,6 @@ jobs:
     
     - name: Build project
       run: |
-        make EMSDK_PATH=${{ env.EMSDK }} PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING MORE PATHS TO THIS
+        emcc --version
+        make EMSDK_PATH=${{ env.EMSDK }} PLATFORM=PLATFORM_WEB -B #TODO ADD PASSING RAYLIB AND PYTHON PATHS TO THIS
       shell: bash

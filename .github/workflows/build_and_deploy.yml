@@ -61,8 +61,7 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         name: boids
-        path: target/web
-        if-no-files-found: error
+        path: ./target/web
   
   deploy:
     runs-on: ubuntu-latest

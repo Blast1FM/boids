@@ -39,6 +39,7 @@ jobs:
       run: |
         emcc --version
         cd ./raylib/src
+        whereis emcc
         sudo make EMSDK_PATH=${{env.EMSDK}} PLATFORM=PLATFORM_WEB -B
       shell: bash
 

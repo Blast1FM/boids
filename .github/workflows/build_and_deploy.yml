@@ -31,8 +31,7 @@ jobs:
 
     - name: Set up EMSDK env
       run: |
-        ls -l
-        echo $EMSDK
+        ls -l $EMSDK
       shell: bash
   
     - name: Checkout raylib

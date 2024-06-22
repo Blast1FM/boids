@@ -8,12 +8,14 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 1280;
-    const int screenHeight = 720;
+
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
 
-    InitWindow(screenWidth, screenHeight, "Boids");
+    InitWindow(0, 0, "Boids");
+
+    int screenWidth = GetScreenWidth();
+    int screenHeight = GetScreenHeight();
 
     Boid flock[128];
     

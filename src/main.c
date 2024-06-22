@@ -8,10 +8,10 @@ int main(void)
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 1280;
-    const int screenHeight = 720;
+    int monitor = GetCurrentMonitor();
 
-    SetConfigFlags(FLAG_MSAA_4X_HINT);
+    const int screenWidth = GetMonitorWidth(monitor);
+    const int screenHeight = GetMonitorHeight(monitor);
 
     InitWindow(screenWidth, screenHeight, "Boids");
 

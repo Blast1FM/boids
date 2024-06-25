@@ -43,7 +43,7 @@ int main(void)
     camera.offset = (Vector2) {screenWidth/2.0f, screenHeight/2.0f};
     camera.zoom = 1.0f;
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    SetTargetFPS(60);               // Set the game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
@@ -80,6 +80,8 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     CloseWindow();              // Close window and OpenGL context
+    free(params);               // Deallocate params
+
     //--------------------------------------------------------------------------------------
 
     return 0;

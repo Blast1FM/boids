@@ -37,8 +37,8 @@ int main(void)
 
     for (int i = 0; i < params->flockArrayLength; i++)
 		flock[i] = *createBoid(
-            (Vector2){GetRandomValue(-screenWidth, screenWidth),
-            GetRandomValue(-screenHeight, screenHeight)}, 
+            (Vector2){GetRandomValue(-screenWidth/2, screenWidth/2),
+            GetRandomValue(-screenHeight/2, screenHeight/2)}, 
             (Vector2){GetRandomValue(-10,10), 
             GetRandomValue(-10,10)}, 
             flock);
@@ -51,7 +51,7 @@ int main(void)
 
     SetTargetFPS(60);               // Set the game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
-
+    printf("Width: %d, Height: %d\n", screenWidth, screenHeight);
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -59,6 +59,7 @@ int main(void)
         for(int i = 0; i<128; i++)
         {
             updateBoid(&flock[i], params);
+            yeetBoidBackIntoVisibleArea(&flock[i], screenWidth, screenHeight);
         }
 
         if(IsKeyPressed(KEY_R)) drawBoidRadii = !drawBoidRadii;

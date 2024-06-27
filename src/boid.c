@@ -98,3 +98,29 @@ void drawBoid(Boid* boid, BoidParams* params, bool drawRadii)
         DrawCircleLinesV(boid->position,params->separationRadius, GREEN);
     }
 }
+
+// Why is this in worldspace after all? I thought I was working with screenspace all this time
+// but it doesn't work that way
+// TODO maybe think of a more sophisticated algo for this cycle hog
+void yeetBoidBackIntoVisibleArea(Boid* boid, int screenWidth, int screenHeight)
+{
+    float halfWidth = screenWidth/2;
+    float halfHeight = screenHeight/2;
+
+    if(boid->position.x > halfWidth)
+    {
+        boid->position.x = -halfWidth;
+    }
+    if(boid->position.x < -halfWidth)
+    {
+        boid->position.x = halfWidth;
+    }
+    if(boid->position.y > halfHeight)
+    {
+        boid->position.y = -halfHeight;
+    }
+    if(boid->position.y < -halfHeight)
+    {
+        boid->position.y = halfHeight;
+    }
+}

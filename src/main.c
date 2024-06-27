@@ -51,7 +51,8 @@ int main(void)
 
     SetTargetFPS(60);               // Set the game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
-    printf("Width: %d, Height: %d\n", screenWidth, screenHeight);
+    int halfWidth = screenWidth/2;
+    int halfHeight = screenHeight/2;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -59,7 +60,7 @@ int main(void)
         for(int i = 0; i<128; i++)
         {
             updateBoid(&flock[i], params);
-            yeetBoidBackIntoVisibleArea(&flock[i], screenWidth, screenHeight);
+            yeetBoidBackIntoVisibleArea(&flock[i], halfWidth, halfHeight);
         }
 
         if(IsKeyPressed(KEY_R)) drawBoidRadii = !drawBoidRadii;

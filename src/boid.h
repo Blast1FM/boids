@@ -14,4 +14,4 @@ typedef struct Boid
 Boid* createBoid(Vector2 position, Vector2 velocity, Boid* flock);
 void updateBoid(Boid* boid, BoidParams* params);
 void drawBoid(Boid* boid, BoidParams* params, bool drawRadii);
-void yeetBoidBackIntoVisibleArea(Boid* boid, int screenWidth, int screenHeight);
+void yeetBoidBackIntoVisibleArea(Boid* boid, int haldWidth, int halfHeight);

@@ -4,16 +4,22 @@
 #include "boid.h"
 #include "boidParams.h"
 
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
+
 int main(void)
 {
-    // Initialization
+    // Initialization with a hacky fullscreen fix for wasm
     //--------------------------------------------------------------------------------------
-    int monitor = GetCurrentMonitor();
 
-    const int screenWidth = GetMonitorWidth(monitor);
-    const int screenHeight = GetMonitorHeight(monitor);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
-    InitWindow(screenWidth, screenHeight, "Boids");
+    InitWindow(100, 100, "Boids");
+
+    const int screenWidth = GetMonitorWidth(GetCurrentMonitor());
+    const int screenHeight = GetMonitorHeight(GetCurrentMonitor());
+
+    SetWindowSize(screenWidth, screenHeight);
 
     Boid flock[128];
     

@@ -14,4 +14,4 @@ done
 
 mkdir -p ./target/
 
-gcc $CFLAGS -o ./target/boids ./src/main.c $SOURCES $LIBS
+gcc $CFLAGS -o ./target/boids ./src/main.c $SOURCES $LIBS -lm

@@ -33,7 +33,7 @@ PROJECT_NAME          ?= boids
 PROJECT_VERSION       ?= 1.0
 PROJECT_BUILD_PATH    ?= ./target
 
-RAYLIB_PATH           ?= path/to/raylib
+RAYLIB_PATH           ?= /usr/include
 
 # Locations of raylib.h and libraylib.a/libraylib.so
 # NOTE: Those variables are only used for PLATFORM_OS: LINUX, BSD

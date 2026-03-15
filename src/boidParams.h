@@ -14,4 +14,6 @@ typedef struct BoidParams
 
     int flockArrayLength;
 
+    Rectangle gameWorldBounds;
+
 }BoidParams;

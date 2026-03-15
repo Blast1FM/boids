@@ -9,10 +9,8 @@
 
 typedef struct 
 {
-    int Width;
-    int Height;
-    int HalfWidth;
-    int HalfHeight;
+    int GameWidth;
+    int GameHeight;
 } ScreenParams;
 
 void DrawUiSliders(int x, int y, BoidParams* params)
@@ -38,46 +36,45 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    ScreenParams dimensions = {GameWidth: 1920, GameHeight: 1080};
 
-    InitWindow(100, 100, "Boids");
+    InitWindow(dimensions.GameWidth, dimensions.GameHeight, "Boids");
+    SetWindowMinSize(dimensions.GameWidth, dimensions.GameHeight);
+    SetWindowSize(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
 
-    ScreenParams dimensions = {Width: GetMonitorWidth(GetCurrentMonitor()), Height: GetMonitorHeight(GetCurrentMonitor())};
-
-    dimensions.HalfHeight = dimensions.Height/2;
-    dimensions.HalfWidth = dimensions.Width/2;
+    RenderTexture2D target = LoadRenderTexture(dimensions.GameWidth, dimensions.GameHeight);
+    SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
 
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
     GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0xFF0000FF);
     
-    SetWindowSize(dimensions.Width, dimensions.Height);
-
     Boid flock[128];
     
-    BoidParams* params = malloc(sizeof(BoidParams));
+    // Set up params
+    BoidParams params;
 
-    params->flockArrayLength = 128;
-    params->separationRadius = 30;
-    params->visibilityRadius = 100;
-    params->maxSpeed = 50.0f;
-    params->separationFactor = 10.5f;
-    params->alignmentFactor = 0.8f;
-    params->cohesionFactor = 0.1f;
+    params.flockArrayLength = 128;
+    params.separationRadius = 30;
+    params.visibilityRadius = 100;
+    params.maxSpeed = 50.0f;
+    params.separationFactor = 10.5f;
+    params.alignmentFactor = 0.8f;
+    params.cohesionFactor = 0.1f;
 
     bool drawBoidRadii = false;
     bool drawUiSliders = false;
 
-    for (int i = 0; i < params->flockArrayLength; i++)
-		flock[i] = *createBoid(
-            (Vector2){GetRandomValue(-dimensions.Height/2, dimensions.Width/2),
-            GetRandomValue(-dimensions.Height/2, dimensions.Width/2)}, 
-            (Vector2){GetRandomValue(-10,10), 
-            GetRandomValue(-10,10)}, 
+    for (int i = 0; i < params.flockArrayLength; i++)
+    {
+        flock[i] = createBoid((Vector2) {x: dimensions.GameHeight, y: dimensions.GameWidth},
+            &params,
             flock);
+    }
 
     Camera2D camera = {0};
 
     camera.target = (Vector2) {0.0f,0.0f};
-    camera.offset = (Vector2) {dimensions.Width/2.0f, dimensions.Height/2.0f};
+    camera.offset = (Vector2) {dimensions.GameWidth/2.0f, dimensions.GameHeight/2.0f};
     camera.zoom = 1.0f;
 
     SetTargetFPS(60);               // Set the game to run at 60 frames-per-second
@@ -86,30 +83,19 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        if (IsWindowResized())
-        {
-            dimensions.Height = GetScreenHeight();
-            dimensions.Width = GetScreenWidth();
+        float scale = fmin((float)GetScreenWidth()/dimensions.GameWidth, (float)GetScreenHeight()/dimensions.GameHeight);
 
-            dimensions.HalfHeight = dimensions.Height/2;
-            dimensions.HalfWidth = dimensions.Width/2;
-
-            camera.offset = (Vector2) {dimensions.HalfHeight, dimensions.HalfWidth};
-        }
-
-        if (drawUiSliders) DrawUiSliders(20, dimensions.HalfHeight, params);
-
-        // Update
+        // Update boids 
         for(int i = 0; i<128; i++)
         {
-            updateBoid(&flock[i], params);
-            yeetBoidBackIntoVisibleArea(&flock[i], dimensions.HalfWidth, dimensions.HalfHeight);
+            updateBoid(&flock[i], &params);
+            yeetBoidBackIntoVisibleArea(&flock[i], dimensions.GameWidth/2, dimensions.GameHeight/2);
         }
 
         if(IsKeyPressed(KEY_R)) drawBoidRadii = !drawBoidRadii;
         if(IsKeyPressed(KEY_S)) drawUiSliders = !drawUiSliders;
 
-        BeginDrawing();
+        BeginTextureMode(target);
 
             ClearBackground(DARKGRAY);
 
@@ -117,14 +103,28 @@ int main(void)
 
                 for(int i = 0; i<128; i++)
                 {
-                    drawBoid(&flock[i], params, drawBoidRadii);
+                    drawBoid(&flock[i], &params, drawBoidRadii);
                 }
 
             EndMode2D();
+        
+        EndTextureMode();
+
+
+        BeginDrawing();
+
+            ClearBackground(BLACK);
+
+            DrawTexturePro(target.texture, (Rectangle){ 0.0f, 0.0f, (float)target.texture.width, (float)-target.texture.height },
+                           (Rectangle){ (GetScreenWidth() - ((float)dimensions.GameWidth*scale))*0.5f, (GetScreenHeight() - ((float)dimensions.GameHeight*scale))*0.5f,
+                           (float)dimensions.GameWidth*scale, (float)dimensions.GameHeight*scale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
+
+            if (drawUiSliders) DrawUiSliders(20, dimensions.GameHeight/2, &params);
 
             DrawFPS(10, 10);
-        
+
         EndDrawing();
+        
 
         //----------------------------------------------------------------------------------
     }
@@ -133,7 +133,6 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     CloseWindow();              // Close window and OpenGL context
-    free(params);               // Deallocate params
 
     //--------------------------------------------------------------------------------------
 

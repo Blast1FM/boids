@@ -4,13 +4,15 @@
 #include "boid.h"
 #include "boidParams.h"
 
-Boid *createBoid(Vector2 position, Vector2 velocity, Boid *flock)
+Boid createBoid(Vector2 gameDimensions, BoidParams* params, Boid* flock)
 {
-    Boid* boid = malloc(sizeof(Boid));
-
-    boid->flock = flock;
-    boid->position = position;
-    boid->velocity = velocity;
+    Boid boid;
+    boid.flock = flock;
+    boid.position = (Vector2){GetRandomValue(-gameDimensions.y/2, gameDimensions.x/2),
+            GetRandomValue(-gameDimensions.x/2, gameDimensions.y/2)};
+    Vector2 velocity = (Vector2){x: GetRandomValue(0, params->maxSpeed), y: GetRandomValue(0, params->maxSpeed)};
+    Vector2Normalize(velocity);
+    boid.velocity = velocity;
 
     return boid;
 }

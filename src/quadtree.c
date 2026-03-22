@@ -4,7 +4,6 @@
 #include "quadtree.h"
 #include "boid.h"
 
-// TODO regular insert boid
 
 bool subdivide(QuadTree* qtree)
 {
@@ -46,6 +45,11 @@ bool subdivide(QuadTree* qtree)
 // TODO check logic, reassignment may not work correctly
 bool reassignBoidsToNewChildren(QuadTree* qtree)
 {
+    if (!qtree->divided)
+    {
+        return false;
+    }
+
     for (int i = 0; i < qtree->boidsPresent; i++)
     {
         Boid* boid = qtree->boids[i];
@@ -60,7 +64,6 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
                 {
                     subdivide(qtree->children[j]);
                     reassignBoidsToNewChildren(qtree->children[j]);
-                    break;
                 }
 
                 // Remove the pointer from the array by shifting the end of the array back over it
@@ -75,6 +78,36 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
     }
 }
 
+void insertBoidIntoTree(QuadTree* qtree, Boid* boid)
+{   
+    QuadTree* leafNode = findLeafForPoint(qtree, boid->position);
+
+    bool inserted = tryInsertIntoNode(leafNode, boid);
+
+    if (!inserted)
+    {
+        subdivide(leafNode);
+        QuadTree* newLeaf = findLeafForPoint(leafNode, boid->position);
+        insertBoidIntoTree(newLeaf, boid);
+    }
+}
+
+QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
+{
+    if (qtree->divided)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            if (CheckCollisionPointRec(position, qtree->children[j]->bounds))
+            {
+                return findLeafForPoint(qtree->children[j], position);
+            }
+        }
+    }
+
+    return qtree;
+}
+
 // Try to insert into a quad tree node that we know, no need to query
 bool tryInsertIntoNode(QuadTree* qtree, Boid* boid)
 {
@@ -85,6 +118,7 @@ bool tryInsertIntoNode(QuadTree* qtree, Boid* boid)
     }
 
     // Place boid ptr, increment boids present
+    // Possibly an out of bounds error here
     qtree->boids[qtree->boidsPresent++] = boid;
     return true;
 }

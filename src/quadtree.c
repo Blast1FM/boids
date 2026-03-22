@@ -53,24 +53,21 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
     for (int i = 0; i < qtree->boidsPresent; i++)
     {
         Boid* boid = qtree->boids[i];
-        for (int j = 0; j < 4; j++)
+        for (int j = 0; j < 4; j++) 
         {
-            if (CheckCollisionPointRec(boid->position, qtree->children[j]->bounds))
+            if (CheckCollisionPointRec(boid->position, qtree->children[j]->bounds)) 
             {
-                bool success = tryInsertIntoNode(boid, qtree->children[j]);
-                
-                // Not enough space in the node
-                if (!success)
-                {
-                    subdivide(qtree->children[j]);
-                    reassignBoidsToNewChildren(qtree->children[j]);
-                }
+                insertBoidIntoTree(qtree->children[j], boid);
 
-                // Remove the pointer from the array by shifting the end of the array back over it
-                memcpy(&qtree->boids[i], &qtree->boids[i+1], BOID_CAP_PER_NODE-1 - i);
-                // To account for shifting the array back one boid pointer
-                i--;
+                // Remove pointer from parent's array (shift remaining elements)
+                size_t elementsToMove = qtree->boidsPresent - i - 1;
+                if (elementsToMove > 0) 
+                {
+                    memmove(&qtree->boids[i], &qtree->boids[i + 1],
+                            elementsToMove * sizeof(Boid*));
+                }
                 qtree->boidsPresent--;
+                // Do not increment i – the next element has shifted into position i
                 break;
             }
         }

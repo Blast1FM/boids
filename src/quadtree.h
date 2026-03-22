@@ -11,7 +11,13 @@ typedef struct QuadTree
     int depth;
     int boidsPresent;
 
-    QuadTree* children[4];
+    struct QuadTree* children[4];
 
     Boid* boids[BOID_CAP_PER_NODE];
 } QuadTree;
+
+bool subdivide(QuadTree* qtree);
+bool reassignBoidsToNewChildren(QuadTree* qtree);
+void insertBoidIntoTree(QuadTree* qtree, Boid* boid);
+QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position);
+bool tryInsertIntoNode(QuadTree* qtree, Boid* boid);

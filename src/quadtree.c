@@ -4,6 +4,16 @@
 #include "quadtree.h"
 #include "boid.h"
 
+QuadTree* initialiseTree(Rectangle bounds)
+{
+    QuadTree* tree = (QuadTree*)malloc(sizeof(QuadTree));
+    memset(tree, 0, sizeof(QuadTree));
+
+    tree->bounds = bounds;
+
+    // Rest should be implicitly set to 0 due to memset
+    return tree;
+}
 
 bool subdivide(QuadTree* qtree)
 {
@@ -12,10 +22,15 @@ bool subdivide(QuadTree* qtree)
         return false;
     }
 
-    QuadTree* northWest = malloc(sizeof(QuadTree));
-    QuadTree* northEast = malloc(sizeof(QuadTree));
-    QuadTree* southEast = malloc(sizeof(QuadTree));
-    QuadTree* southWest = malloc(sizeof(QuadTree));
+    QuadTree* northWest = (QuadTree*)malloc(sizeof(QuadTree));
+    QuadTree* northEast = (QuadTree*)malloc(sizeof(QuadTree));
+    QuadTree* southEast = (QuadTree*)malloc(sizeof(QuadTree));
+    QuadTree* southWest = (QuadTree*)malloc(sizeof(QuadTree));
+
+    memset(northWest, 0, sizeof(QuadTree));
+    memset(northEast, 0, sizeof(QuadTree));
+    memset(southEast, 0, sizeof(QuadTree));
+    memset(southWest, 0, sizeof(QuadTree));
 
     int halfWidth = qtree->bounds.width / 2;
     int halfHeight = qtree->bounds.height / 2;
@@ -40,9 +55,10 @@ bool subdivide(QuadTree* qtree)
 
     bool reassigned = reassignBoidsToNewChildren(qtree);
 
+    return reassigned;
 }
 
-// TODO check logic, reassignment may not work correctly
+
 bool reassignBoidsToNewChildren(QuadTree* qtree)
 {
     if (!qtree->divided)
@@ -73,11 +89,21 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
         }
             
     }
+
+    return true;
 }
 
-void insertBoidIntoTree(QuadTree* qtree, Boid* boid)
-{   
+bool insertBoidIntoTree(QuadTree* qtree, Boid* boid)
+{
+    if (qtree == NULL || boid == NULL)
+        return false;
+
     QuadTree* leafNode = findLeafForPoint(qtree, boid->position);
+    if (leafNode == NULL)
+    {
+        // Point lies outside every leaf; insertion is impossible.
+        return false;
+    }
 
     bool inserted = tryInsertIntoNode(leafNode, boid);
 
@@ -85,12 +111,18 @@ void insertBoidIntoTree(QuadTree* qtree, Boid* boid)
     {
         subdivide(leafNode);
         QuadTree* newLeaf = findLeafForPoint(leafNode, boid->position);
-        insertBoidIntoTree(newLeaf, boid);
+        if (newLeaf != NULL)
+        {
+            return insertBoidIntoTree(newLeaf, boid);
+        }
     }
 }
 
 QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
 {
+    if (qtree == NULL)
+        return NULL;
+
     if (qtree->divided)
     {
         for (int j = 0; j < 4; j++)
@@ -100,6 +132,8 @@ QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
                 return findLeafForPoint(qtree->children[j], position);
             }
         }
+
+        return NULL;
     }
 
     return qtree;
@@ -108,9 +142,9 @@ QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
 // Try to insert into a quad tree node that we know, no need to query
 bool tryInsertIntoNode(QuadTree* qtree, Boid* boid)
 {
-    if (qtree->boidsPresent >= BOID_CAP_PER_NODE)
+    if (qtree->boidsPresent >= BOID_CAP_PER_NODE || qtree->divided)
     {
-        // Not enough space
+        // Not enough space or this isnt a leaf node
         return false;
     }
 
@@ -118,4 +152,16 @@ bool tryInsertIntoNode(QuadTree* qtree, Boid* boid)
     // Possibly an out of bounds error here
     qtree->boids[qtree->boidsPresent++] = boid;
     return true;
+}
+
+void drawBounds(QuadTree* qtree)
+{
+    DrawRectangleLines(qtree->bounds.x, qtree->bounds.y, qtree->bounds.width, qtree->bounds.height, RED);
+    if (qtree->divided)
+    {
+        for (int i = 0; i<4; i++)
+        {
+            drawBounds(qtree->children[i]);
+        }
+    }
 }

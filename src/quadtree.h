@@ -16,8 +16,10 @@ typedef struct QuadTree
     Boid* boids[BOID_CAP_PER_NODE];
 } QuadTree;
 
+void drawBounds(QuadTree* qtree);
+QuadTree* initialiseTree(Rectangle bounds);
 bool subdivide(QuadTree* qtree);
 bool reassignBoidsToNewChildren(QuadTree* qtree);
-void insertBoidIntoTree(QuadTree* qtree, Boid* boid);
+bool insertBoidIntoTree(QuadTree* qtree, Boid* boid);
 QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position);
 bool tryInsertIntoNode(QuadTree* qtree, Boid* boid);

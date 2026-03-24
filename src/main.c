@@ -3,14 +3,17 @@
 #include <raymath.h>
 #include "boid.h"
 #include "boidParams.h"
+#include "quadtree.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
+#define BOID_COUNT 256
+
 typedef struct 
 {
-    int GameWidth;
-    int GameHeight;
+    int ScreenWidth;
+    int ScreenHeight;
 } ScreenParams;
 
 void DrawUiSliders(int x, int y, BoidParams* params)
@@ -36,24 +39,25 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    ScreenParams dimensions = {GameWidth: 1920, GameHeight: 1080};
+    ScreenParams dimensions = {ScreenWidth: 1920, ScreenHeight: 1080};
 
-    InitWindow(dimensions.GameWidth, dimensions.GameHeight, "Boids");
-    SetWindowMinSize(dimensions.GameWidth, dimensions.GameHeight);
+    InitWindow(dimensions.ScreenWidth, dimensions.ScreenHeight, "Boids");
+    SetWindowMinSize(dimensions.ScreenWidth, dimensions.ScreenHeight);
     SetWindowSize(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
 
-    RenderTexture2D target = LoadRenderTexture(dimensions.GameWidth, dimensions.GameHeight);
+    RenderTexture2D target = LoadRenderTexture(dimensions.ScreenWidth, dimensions.ScreenHeight);
     SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
 
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
     GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0xFF0000FF);
     
-    Boid flock[128];
+    Boid flock[BOID_COUNT];
+    memset(flock, 0, sizeof(Boid) * BOID_COUNT);
     
     // Set up params
     BoidParams params;
 
-    params.flockArrayLength = 128;
+    params.flockArrayLength = BOID_COUNT;
     params.separationRadius = 30;
     params.visibilityRadius = 100;
     params.maxSpeed = 50.0f;
@@ -64,17 +68,20 @@ int main(void)
     bool drawBoidRadii = false;
     bool drawUiSliders = false;
 
+    QuadTree* qtree = initialiseTree((Rectangle){-dimensions.ScreenWidth/2,-dimensions.ScreenHeight/2, dimensions.ScreenWidth, dimensions.ScreenHeight});
+
     for (int i = 0; i < params.flockArrayLength; i++)
     {
-        flock[i] = createBoid((Vector2) {x: dimensions.GameHeight, y: dimensions.GameWidth},
+        flock[i] = createBoid((Vector2) {x: dimensions.ScreenHeight, y: dimensions.ScreenWidth},
             &params,
             flock);
+            insertBoidIntoTree(qtree, &flock[i]);
     }
 
     Camera2D camera = {0};
 
     camera.target = (Vector2) {0.0f,0.0f};
-    camera.offset = (Vector2) {dimensions.GameWidth/2.0f, dimensions.GameHeight/2.0f};
+    camera.offset = (Vector2) {dimensions.ScreenWidth/2.0f, dimensions.ScreenHeight/2.0f};
     camera.zoom = 1.0f;
 
     SetTargetFPS(60);               // Set the game to run at 60 frames-per-second
@@ -83,14 +90,16 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        float scale = fmin((float)GetScreenWidth()/dimensions.GameWidth, (float)GetScreenHeight()/dimensions.GameHeight);
+        float scale = fmin((float)GetScreenWidth()/dimensions.ScreenWidth, (float)GetScreenHeight()/dimensions.ScreenHeight);
 
         // Update boids 
+        /*
         for(int i = 0; i<128; i++)
         {
             updateBoid(&flock[i], &params);
             yeetBoidBackIntoVisibleArea(&flock[i], dimensions.GameWidth/2, dimensions.GameHeight/2);
         }
+        */
 
         if(IsKeyPressed(KEY_R)) drawBoidRadii = !drawBoidRadii;
         if(IsKeyPressed(KEY_S)) drawUiSliders = !drawUiSliders;
@@ -100,6 +109,8 @@ int main(void)
             ClearBackground(DARKGRAY);
 
             BeginMode2D(camera);
+
+                drawBounds(qtree);
 
                 for(int i = 0; i<128; i++)
                 {
@@ -116,10 +127,10 @@ int main(void)
             ClearBackground(BLACK);
 
             DrawTexturePro(target.texture, (Rectangle){ 0.0f, 0.0f, (float)target.texture.width, (float)-target.texture.height },
-                           (Rectangle){ (GetScreenWidth() - ((float)dimensions.GameWidth*scale))*0.5f, (GetScreenHeight() - ((float)dimensions.GameHeight*scale))*0.5f,
-                           (float)dimensions.GameWidth*scale, (float)dimensions.GameHeight*scale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
+                           (Rectangle){ (GetScreenWidth() - ((float)dimensions.ScreenWidth*scale))*0.5f, (GetScreenHeight() - ((float)dimensions.ScreenHeight*scale))*0.5f,
+                           (float)dimensions.ScreenWidth*scale, (float)dimensions.ScreenHeight*scale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
 
-            if (drawUiSliders) DrawUiSliders(20, dimensions.GameHeight/2, &params);
+            if (drawUiSliders) DrawUiSliders(20, dimensions.ScreenHeight/2, &params);
 
             DrawFPS(10, 10);
 

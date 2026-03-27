@@ -58,7 +58,6 @@ bool subdivide(QuadTree* qtree)
     return reassigned;
 }
 
-
 bool reassignBoidsToNewChildren(QuadTree* qtree)
 {
     if (!qtree->divided)
@@ -93,6 +92,28 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
     return true;
 }
 
+bool removeBoidFromNode(QuadTree* qtree, Boid* boid)
+{
+    for (int i = 0; i < BOID_CAP_PER_NODE; i++)
+    {
+        if (qtree->boids[i] == boid)
+        {
+            size_t elementsToMove = qtree->boidsPresent - i - 1;
+            if (elementsToMove > 0) 
+            {
+                memmove(&qtree->boids[i], &qtree->boids[i + 1],
+                        elementsToMove * sizeof(Boid*));
+            }
+            qtree->boidsPresent--;
+            boid->node = NULL;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool insertBoidIntoTree(QuadTree* qtree, Boid* boid)
 {
     if (qtree == NULL || boid == NULL)
@@ -116,6 +137,9 @@ bool insertBoidIntoTree(QuadTree* qtree, Boid* boid)
             return insertBoidIntoTree(newLeaf, boid);
         }
     }
+    
+    boid->node = qtree;
+    return true;
 }
 
 QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)

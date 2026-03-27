@@ -4,10 +4,9 @@
 #include "boid.h"
 #include "boidParams.h"
 
-Boid createBoid(Vector2 gameDimensions, BoidParams* params, Boid* flock)
+Boid createBoid(Vector2 gameDimensions, BoidParams* params)
 {
-    Boid boid;
-    boid.flock = flock;
+    Boid boid = {0};
     boid.position = (Vector2){GetRandomValue(-gameDimensions.y/2, gameDimensions.x/2),
             GetRandomValue(-gameDimensions.x/2, gameDimensions.y/2)};
     Vector2 velocity = (Vector2){x: GetRandomValue(0, params->maxSpeed), y: GetRandomValue(0, params->maxSpeed)};
@@ -37,10 +36,9 @@ void updateBoid(Boid* boid, BoidParams* params)
     Vector2 alignmentVelocity = Vector2Zero();
     Vector2 localFlockCentre = Vector2Zero();
     Vector2 cohesionVelocity = Vector2Zero();
-    
+    /*
     for(int i = 0; i<params->flockArrayLength; i++)
     {
-        if(boid == &boid->flock[i]) continue;
         float distance = Vector2Distance(boid->position, boid->flock[i].position);
         if(distance < params->separationRadius)
         {   
@@ -89,6 +87,8 @@ void updateBoid(Boid* boid, BoidParams* params)
 
     boid->position.x = boid->position.x + boid->velocity.x * deltaTime;
     boid->position.y = boid->position.y + boid->velocity.y * deltaTime;
+
+    */
 }
 
 void drawBoid(Boid* boid, BoidParams* params, bool drawRadii)

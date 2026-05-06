@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <raylib.h>
 #include <raymath.h>
-#include "boid.h"
 #include "boidParams.h"
+#include "boidList.h"
 #include "quadtree.h"
+#include "boid.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -73,8 +74,7 @@ int main(void)
     for (int i = 0; i < params.flockArrayLength; i++)
     {
         flock[i] = createBoid((Vector2) {x: dimensions.ScreenHeight, y: dimensions.ScreenWidth},
-            &params,
-            flock);
+            &params);
             insertBoidIntoTree(qtree, &flock[i]);
     }
 
@@ -92,14 +92,17 @@ int main(void)
     {
         float scale = fmin((float)GetScreenWidth()/dimensions.ScreenWidth, (float)GetScreenHeight()/dimensions.ScreenHeight);
 
-        // Update boids 
-        /*
-        for(int i = 0; i<128; i++)
+        
+        for(int i = 0; i<BOID_COUNT; i++)
         {
-            updateBoid(&flock[i], &params);
-            yeetBoidBackIntoVisibleArea(&flock[i], dimensions.GameWidth/2, dimensions.GameHeight/2);
+            int updated = updateBoid(&flock[i], &params);
+            if ( updated != 0)
+            {
+                printf("Failed to update boid with address %x with exit code %d\n", &flock[i] ,updated);
+            }
+            yeetBoidBackIntoVisibleArea(&flock[i], dimensions.ScreenWidth/2, dimensions.ScreenHeight/2);
         }
-        */
+    
 
         if(IsKeyPressed(KEY_R)) drawBoidRadii = !drawBoidRadii;
         if(IsKeyPressed(KEY_S)) drawUiSliders = !drawUiSliders;
@@ -112,7 +115,7 @@ int main(void)
 
                 drawBounds(qtree);
 
-                for(int i = 0; i<128; i++)
+                for(int i = 0; i<BOID_COUNT; i++)
                 {
                     drawBoid(&flock[i], &params, drawBoidRadii);
                 }

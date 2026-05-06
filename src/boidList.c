@@ -1,6 +1,6 @@
 #include <stdlib.h>
-#include "boid.h"
 #include "boidList.h"
+#include "boid.h"
 
 // Error code -1 : failed to reallocate
 int blAppend(BoidList* list, Boid* boid)

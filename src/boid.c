@@ -2,6 +2,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include "boid.h"
+#include "quadtree.h"
 #include "boidParams.h"
 
 Boid createBoid(Vector2 gameDimensions, BoidParams* params)
@@ -22,8 +23,12 @@ Vector2 calculateWeightedSeparationVelocity(float* distance, Vector2* pos1, Vect
     return (Vector2) Vector2Scale(separationDirection, 1.0f/(*distance));
 }
 
-void updateBoid(Boid* boid, BoidParams* params)
+int updateBoid(Boid* boid, BoidParams* params)
 {
+    if (boid->node == NULL)
+    {
+        return -1;
+    }
     double deltaTime = GetFrameTime();
 
     // TODO ideally check for params being null here
@@ -36,24 +41,26 @@ void updateBoid(Boid* boid, BoidParams* params)
     Vector2 alignmentVelocity = Vector2Zero();
     Vector2 localFlockCentre = Vector2Zero();
     Vector2 cohesionVelocity = Vector2Zero();
-    /*
-    for(int i = 0; i<params->flockArrayLength; i++)
+
+    for (int i = 0; i<boid->node->boidsPresent; i++)
     {
-        float distance = Vector2Distance(boid->position, boid->flock[i].position);
+        if (boid == boid->node->boids[i]) continue;
+
+        float distance = Vector2Distance(boid->position, boid->node->boids[i]->position);
         if(distance < params->separationRadius)
         {   
             // Separation logic
             separationVelocity = Vector2Add(separationVelocity,
-            calculateWeightedSeparationVelocity(&distance, &(boid->position), &(boid->flock[i].position)));
+            calculateWeightedSeparationVelocity(&distance, &(boid->position), &(boid->node->boids[i]->position)));
             encroachingNeighbourCount++;
         }
         if(distance < params->visibilityRadius)
         {
             // Alignment logic
-            alignmentVelocity = Vector2Add(alignmentVelocity, boid->flock[i].velocity);
+            alignmentVelocity = Vector2Add(alignmentVelocity, boid->node->boids[i]->velocity);
             alignmentNeighbourCount++;
             // Cohesion logic
-            localFlockCentre = Vector2Add(localFlockCentre, boid->flock[i].position);
+            localFlockCentre = Vector2Add(localFlockCentre, boid->node->boids[i]->position);
             cohesionNeighbourCount++;
         }
     }
@@ -88,7 +95,8 @@ void updateBoid(Boid* boid, BoidParams* params)
     boid->position.x = boid->position.x + boid->velocity.x * deltaTime;
     boid->position.y = boid->position.y + boid->velocity.y * deltaTime;
 
-    */
+    // TODO Add node transition check and logic
+    return 0;
 }
 
 void drawBoid(Boid* boid, BoidParams* params, bool drawRadii)

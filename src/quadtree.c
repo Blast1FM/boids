@@ -3,6 +3,7 @@
 #include <raylib.h>
 #include "quadtree.h"
 #include "boid.h"
+#include "boidList.h"
 
 QuadTree* initialiseTree(Rectangle bounds)
 {
@@ -90,6 +91,42 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
     }
 
     return true;
+}
+
+// Function to get boids in a given rectangle, use when queried area overlaps with multiple nodes
+BoidList getBoidsInRectangle(QuadTree* qtree, Rectangle targetRect)
+{
+    BoidList list = {0};
+
+    recursiveGetBoids(qtree, targetRect, &list);
+
+    return list;
+}
+
+// Recursive function to drill down to leaf nodes overlapping with the queried area, and append boids that are inside
+void recursiveGetBoids(QuadTree* qtree, Rectangle queriedArea, BoidList* list)
+{
+    // Drill down
+    if (!qtree->divided)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            if (CheckCollisionRecs(qtree->children[i]->bounds, queriedArea))
+            {
+                recursiveGetBoids(qtree->children[i], queriedArea, list);
+            }
+        }
+    } else
+    // Leaf node - should have an overlap already due to how drill down works 
+    {
+        for (int j = 0; j < qtree->boidsPresent; j++)
+        {
+            if (CheckCollisionPointRec(qtree->boids[j]->position, queriedArea))
+            {
+                blAppend(list, qtree->boids[j]);
+            }
+        }
+    }
 }
 
 bool removeBoidFromNode(QuadTree* qtree, Boid* boid)

@@ -83,6 +83,7 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
                             elementsToMove * sizeof(Boid*));
                 }
                 qtree->boidsPresent--;
+                i--;
                 // Do not increment i – the next element has shifted into position i
                 break;
             }
@@ -107,9 +108,9 @@ BoidList getBoidsInRectangle(QuadTree* qtree, Rectangle targetRect)
 void recursiveGetBoids(QuadTree* qtree, Rectangle queriedArea, BoidList* list)
 {
     // Drill down
-    if (!qtree->divided)
+    if (qtree->divided)
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             if (CheckCollisionRecs(qtree->children[i]->bounds, queriedArea))
             {
@@ -175,7 +176,7 @@ bool insertBoidIntoTree(QuadTree* qtree, Boid* boid)
         }
     }
     
-    boid->node = qtree;
+    boid->node = leafNode;
     return true;
 }
 
@@ -213,6 +214,23 @@ bool tryInsertIntoNode(QuadTree* qtree, Boid* boid)
     // Possibly an out of bounds error here
     qtree->boids[qtree->boidsPresent++] = boid;
     return true;
+}
+
+void freeTree(QuadTree* qtree)
+{
+    if (qtree == NULL)
+    {
+        return;
+    }
+
+    if (qtree->divided)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            freeTree(qtree->children[i]);
+        }
+    }
+    free(qtree);
 }
 
 void drawBounds(QuadTree* qtree)

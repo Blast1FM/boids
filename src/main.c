@@ -73,7 +73,7 @@ int main(void)
 
     for (int i = 0; i < params.flockArrayLength; i++)
     {
-        flock[i] = createBoid((Vector2) {x: dimensions.ScreenHeight, y: dimensions.ScreenWidth},
+        flock[i] = createBoid((Vector2) {x: dimensions.ScreenWidth, y: dimensions.ScreenHeight},
             &params);
             insertBoidIntoTree(qtree, &flock[i]);
     }
@@ -93,8 +93,12 @@ int main(void)
         float scale = fmin((float)GetScreenWidth()/dimensions.ScreenWidth, (float)GetScreenHeight()/dimensions.ScreenHeight);
 
         
+        freeTree(qtree);
+        qtree = initialiseTree((Rectangle){-dimensions.ScreenWidth/2,-dimensions.ScreenHeight/2, dimensions.ScreenWidth, dimensions.ScreenHeight});
+
         for(int i = 0; i<BOID_COUNT; i++)
         {
+            insertBoidIntoTree(qtree, &flock[i]);
             int updated = updateBoid(&flock[i], &params);
             if ( updated != 0)
             {

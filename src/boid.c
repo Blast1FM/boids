@@ -8,8 +8,8 @@
 Boid createBoid(Vector2 gameDimensions, BoidParams* params)
 {
     Boid boid = {0};
-    boid.position = (Vector2){GetRandomValue(-gameDimensions.y/2, gameDimensions.x/2),
-            GetRandomValue(-gameDimensions.x/2, gameDimensions.y/2)};
+    boid.position = (Vector2){GetRandomValue(-gameDimensions.x/2, gameDimensions.x/2),
+            GetRandomValue(-gameDimensions.y/2, gameDimensions.y/2)};
     Vector2 velocity = (Vector2){x: GetRandomValue(0, params->maxSpeed), y: GetRandomValue(0, params->maxSpeed)};
     Vector2Normalize(velocity);
     boid.velocity = velocity;

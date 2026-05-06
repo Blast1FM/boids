@@ -26,3 +26,4 @@ bool reassignBoidsToNewChildren(QuadTree* qtree);
 bool insertBoidIntoTree(QuadTree* qtree, Boid* boid);
 QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position);
 bool tryInsertIntoNode(QuadTree* qtree, Boid* boid);
+void freeTree(QuadTree* qtree);

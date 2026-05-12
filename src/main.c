@@ -69,7 +69,7 @@ int main(void)
     bool drawBoidRadii = false;
     bool drawUiSliders = false;
 
-    QuadTree* qtree = initialiseTree((Rectangle){-dimensions.ScreenWidth/2,-dimensions.ScreenHeight/2, dimensions.ScreenWidth, dimensions.ScreenHeight});
+    QuadTree* qtree = initialiseTree((Rectangle){-dimensions.ScreenWidth/2,-dimensions.ScreenHeight/2, dimensions.ScreenWidth, dimensions.ScreenHeight}, NULL);
 
     for (int i = 0; i < params.flockArrayLength; i++)
     {
@@ -94,7 +94,7 @@ int main(void)
 
         
         freeTree(qtree);
-        qtree = initialiseTree((Rectangle){-dimensions.ScreenWidth/2,-dimensions.ScreenHeight/2, dimensions.ScreenWidth, dimensions.ScreenHeight});
+        qtree = initialiseTree((Rectangle){-dimensions.ScreenWidth/2,-dimensions.ScreenHeight/2, dimensions.ScreenWidth, dimensions.ScreenHeight}, NULL);
 
         for(int i = 0; i<BOID_COUNT; i++)
         {

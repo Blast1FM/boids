@@ -1,46 +1,41 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <raylib.h>
 #include "quadtree.h"
 #include "boid.h"
 #include "boidList.h"
 
-QuadTree* initialiseTree(Rectangle bounds)
+QuadTree* initialiseTree(Rectangle bounds, QuadTree* parent)
 {
     QuadTree* tree = (QuadTree*)malloc(sizeof(QuadTree));
     memset(tree, 0, sizeof(QuadTree));
 
     tree->bounds = bounds;
-
+    tree->isLeaf = true;
     // Rest should be implicitly set to 0 due to memset
     return tree;
 }
 
 bool subdivide(QuadTree* qtree)
 {
-    if (qtree->divided)
+    if (!qtree->isLeaf)
     {
         return false;
     }
 
-    QuadTree* northWest = (QuadTree*)malloc(sizeof(QuadTree));
-    QuadTree* northEast = (QuadTree*)malloc(sizeof(QuadTree));
-    QuadTree* southEast = (QuadTree*)malloc(sizeof(QuadTree));
-    QuadTree* southWest = (QuadTree*)malloc(sizeof(QuadTree));
-
-    memset(northWest, 0, sizeof(QuadTree));
-    memset(northEast, 0, sizeof(QuadTree));
-    memset(southEast, 0, sizeof(QuadTree));
-    memset(southWest, 0, sizeof(QuadTree));
-
     int halfWidth = qtree->bounds.width / 2;
     int halfHeight = qtree->bounds.height / 2;
 
-    northWest->bounds = (Rectangle){ x: qtree->bounds.x, y: qtree->bounds.y, width: halfWidth, height: halfHeight};
-    northEast->bounds = (Rectangle){ x: qtree->bounds.x + halfWidth, y: qtree->bounds.y, width: halfWidth, height: halfHeight};
+    Rectangle northWestBounds = (Rectangle){ x: qtree->bounds.x, y: qtree->bounds.y, width: halfWidth, height: halfHeight};
+    Rectangle northEastBounds = (Rectangle){ x: qtree->bounds.x + halfWidth, y: qtree->bounds.y, width: halfWidth, height: halfHeight};
+    Rectangle southEastBounds = (Rectangle){ x: qtree->bounds.x + halfWidth, y:qtree->bounds.y + halfHeight, width: halfWidth, height: halfHeight};
+    Rectangle southWestBounds = (Rectangle){ x: qtree->bounds.x, y: qtree->bounds.y+halfHeight, width: halfWidth, height: halfHeight};
 
-    southEast->bounds = (Rectangle){ x: qtree->bounds.x + halfWidth, y:qtree->bounds.y + halfHeight, width: halfWidth, height: halfHeight};
-    southWest->bounds = (Rectangle){ x: qtree->bounds.x, y: qtree->bounds.y+halfHeight, width: halfWidth, height: halfHeight};
+    QuadTree* northWest = initialiseTree(northWestBounds, qtree);
+    QuadTree* northEast = initialiseTree(northEastBounds, qtree);
+    QuadTree* southEast = initialiseTree(southEastBounds, qtree);
+    QuadTree* southWest = initialiseTree(southWestBounds, qtree);
 
     qtree->children[0] = northWest;
     qtree->children[1] = northEast;
@@ -52,7 +47,7 @@ bool subdivide(QuadTree* qtree)
     southEast->depth = qtree->depth + 1;
     southWest->depth = qtree->depth + 1;
 
-    qtree->divided = true;
+    qtree->isLeaf = false;
 
     bool reassigned = reassignBoidsToNewChildren(qtree);
 
@@ -61,7 +56,7 @@ bool subdivide(QuadTree* qtree)
 
 bool reassignBoidsToNewChildren(QuadTree* qtree)
 {
-    if (!qtree->divided)
+    if (qtree->isLeaf)
     {
         return false;
     }
@@ -73,23 +68,22 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
         {
             if (CheckCollisionPointRec(boid->position, qtree->children[j]->bounds)) 
             {
-                insertBoidIntoTree(qtree->children[j], boid);
-
-                // Remove pointer from parent's array (shift remaining elements)
-                size_t elementsToMove = qtree->boidsPresent - i - 1;
-                if (elementsToMove > 0) 
+                bool inserted = insertBoidIntoTree(qtree->children[j], boid);
+                
+                if (!inserted)
                 {
-                    memmove(&qtree->boids[i], &qtree->boids[i + 1],
-                            elementsToMove * sizeof(Boid*));
+                    printf("Failed to insert boid with address %x when reassigning boids in node with address %x\n", boid, qtree);
+                    return false;
                 }
-                qtree->boidsPresent--;
-                i--;
-                // Do not increment i – the next element has shifted into position i
+
                 break;
             }
         }
-            
     }
+
+    // Clear the boid pointer container and zero out present boids for newly non-leaf node
+    qtree->boidsPresent = 0;
+    memset(qtree->boids, 0, sizeof(Boid*) * BOID_CAP_PER_NODE);
 
     return true;
 }
@@ -104,11 +98,11 @@ BoidList getBoidsInRectangle(QuadTree* qtree, Rectangle targetRect)
     return list;
 }
 
-// Recursive function to drill down to leaf nodes overlapping with the queried area, and append boids that are inside
+// Recursive function to drill down to leaf nodes overlapping with the queried area, and append boids that are inside to the passed list pointer
 void recursiveGetBoids(QuadTree* qtree, Rectangle queriedArea, BoidList* list)
 {
     // Drill down
-    if (qtree->divided)
+    if (!qtree->isLeaf)
     {
         for (int i = 0; i < 4; i++)
         {
@@ -144,7 +138,6 @@ bool removeBoidFromNode(QuadTree* qtree, Boid* boid)
             }
             qtree->boidsPresent--;
             boid->node = NULL;
-
             return true;
         }
     }
@@ -176,7 +169,6 @@ bool insertBoidIntoTree(QuadTree* qtree, Boid* boid)
         }
     }
     
-    boid->node = leafNode;
     return true;
 }
 
@@ -185,7 +177,7 @@ QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
     if (qtree == NULL)
         return NULL;
 
-    if (qtree->divided)
+    if (!qtree->isLeaf)
     {
         for (int j = 0; j < 4; j++)
         {
@@ -204,7 +196,7 @@ QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
 // Try to insert into a quad tree node that we know, no need to query
 bool tryInsertIntoNode(QuadTree* qtree, Boid* boid)
 {
-    if (qtree->boidsPresent >= BOID_CAP_PER_NODE || qtree->divided)
+    if (qtree->boidsPresent >= BOID_CAP_PER_NODE || !qtree->isLeaf)
     {
         // Not enough space or this isnt a leaf node
         return false;
@@ -213,6 +205,7 @@ bool tryInsertIntoNode(QuadTree* qtree, Boid* boid)
     // Place boid ptr, increment boids present
     // Possibly an out of bounds error here
     qtree->boids[qtree->boidsPresent++] = boid;
+    boid->node = qtree;
     return true;
 }
 
@@ -223,7 +216,7 @@ void freeTree(QuadTree* qtree)
         return;
     }
 
-    if (qtree->divided)
+    if (!qtree->isLeaf)
     {
         for (int i = 0; i < 4; i++)
         {
@@ -236,7 +229,7 @@ void freeTree(QuadTree* qtree)
 void drawBounds(QuadTree* qtree)
 {
     DrawRectangleLines(qtree->bounds.x, qtree->bounds.y, qtree->bounds.width, qtree->bounds.height, RED);
-    if (qtree->divided)
+    if (!qtree->isLeaf)
     {
         for (int i = 0; i<4; i++)
         {

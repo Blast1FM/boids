@@ -7,10 +7,11 @@
 typedef struct QuadTree
 {
     Rectangle bounds;
-    bool divided;
+    bool isLeaf;
     int depth;
     int boidsPresent;
-
+    
+    struct QuadTree* parent;
     struct QuadTree* children[4];
     struct Boid* boids[BOID_CAP_PER_NODE];
 } QuadTree;
@@ -20,9 +21,10 @@ void drawBounds(QuadTree* qtree);
 void recursiveGetBoids(QuadTree* qtree, Rectangle queriedArea, BoidList* list);
 // Function to get boids in a given rectangle, use when queried area overlaps with multiple nodes
 BoidList getBoidsInRectangle(QuadTree* qtree, Rectangle targetRect);
-QuadTree* initialiseTree(Rectangle bounds);
+QuadTree* initialiseTree(Rectangle bounds, QuadTree* parent);
 bool subdivide(QuadTree* qtree);
 bool reassignBoidsToNewChildren(QuadTree* qtree);
+bool removeBoidFromNode(QuadTree* qtree, Boid* boid);
 bool insertBoidIntoTree(QuadTree* qtree, Boid* boid);
 QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position);
 bool tryInsertIntoNode(QuadTree* qtree, Boid* boid);

@@ -98,13 +98,24 @@ int main(void)
 
         for(int i = 0; i<BOID_COUNT; i++)
         {
-            insertBoidIntoTree(qtree, &flock[i]);
+            bool inserted = insertBoidIntoTree(qtree, &flock[i]);
+
             int updated = updateBoid(&flock[i], &params);
             if ( updated != 0)
             {
                 printf("Failed to update boid with address %x with exit code %d\n", &flock[i] ,updated);
             }
-            yeetBoidBackIntoVisibleArea(&flock[i], dimensions.ScreenWidth/2, dimensions.ScreenHeight/2);
+
+            if (!inserted || !(CheckCollisionPointRec(flock[i].position, qtree->bounds)))
+            {
+                if (flock[i].node != NULL)
+                {
+                    removeBoidFromNode(flock[i].node, &flock[i]);
+                }
+
+                yeetBoidBackIntoVisibleArea(&flock[i], dimensions.ScreenWidth/2, dimensions.ScreenHeight/2);
+                insertBoidIntoTree(qtree, &flock[i]);
+            }
         }
     
 

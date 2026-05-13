@@ -24,13 +24,13 @@ bool subdivide(QuadTree* qtree)
         return false;
     }
 
-    int halfWidth = qtree->bounds.width / 2;
-    int halfHeight = qtree->bounds.height / 2;
+    float halfWidth = qtree->bounds.width / 2.0f;
+    float halfHeight = qtree->bounds.height / 2.0f;
 
     Rectangle northWestBounds = (Rectangle){ x: qtree->bounds.x, y: qtree->bounds.y, width: halfWidth, height: halfHeight};
-    Rectangle northEastBounds = (Rectangle){ x: qtree->bounds.x + halfWidth, y: qtree->bounds.y, width: halfWidth, height: halfHeight};
-    Rectangle southEastBounds = (Rectangle){ x: qtree->bounds.x + halfWidth, y:qtree->bounds.y + halfHeight, width: halfWidth, height: halfHeight};
-    Rectangle southWestBounds = (Rectangle){ x: qtree->bounds.x, y: qtree->bounds.y+halfHeight, width: halfWidth, height: halfHeight};
+    Rectangle northEastBounds = (Rectangle){ x: qtree->bounds.x + halfWidth, y: qtree->bounds.y, width: qtree->bounds.width - halfWidth, height: halfHeight};
+    Rectangle southEastBounds = (Rectangle){ x: qtree->bounds.x + halfWidth, y:qtree->bounds.y + halfHeight, width: qtree->bounds.width - halfWidth, height: qtree->bounds.height - halfHeight};
+    Rectangle southWestBounds = (Rectangle){ x: qtree->bounds.x, y: qtree->bounds.y+halfHeight, width: halfWidth, height: qtree->bounds.height - halfHeight};
 
     QuadTree* northWest = initialiseTree(northWestBounds, qtree);
     QuadTree* northEast = initialiseTree(northEastBounds, qtree);
@@ -126,7 +126,7 @@ void recursiveGetBoids(QuadTree* qtree, Rectangle queriedArea, BoidList* list)
 
 bool removeBoidFromNode(QuadTree* qtree, Boid* boid)
 {
-    for (int i = 0; i < BOID_CAP_PER_NODE; i++)
+    for (int i = 0; i < qtree->boidsPresent; i++)
     {
         if (qtree->boids[i] == boid)
         {
@@ -223,6 +223,16 @@ void freeTree(QuadTree* qtree)
             freeTree(qtree->children[i]);
         }
     }
+
+    // Nullify boid->node pointers for boids in this quadtree node
+    for (int i = 0; i < qtree->boidsPresent; i++)
+    {
+        if (qtree->boids[i] != NULL)
+        {
+            qtree->boids[i]->node = NULL;
+        }
+    }
+    
     free(qtree);
 }
 

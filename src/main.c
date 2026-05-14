@@ -92,28 +92,32 @@ int main(void)
     {
         float scale = fmin((float)GetScreenWidth()/dimensions.ScreenWidth, (float)GetScreenHeight()/dimensions.ScreenHeight);
 
-        
-        freeTree(qtree);
-        qtree = initialiseTree((Rectangle){-dimensions.ScreenWidth/2,-dimensions.ScreenHeight/2, dimensions.ScreenWidth, dimensions.ScreenHeight}, NULL);
-
         for(int i = 0; i<BOID_COUNT; i++)
         {
-            bool inserted = insertBoidIntoTree(qtree, &flock[i]);
+            // TODO
+            // I don't know yet why they're getting orphaned yet, but I will need to ensure both the node it was in and the boid itself are accounted for
+            if (flock[i].node == NULL)
+            {
+                printf("Boid with address %x is an orphan\n", &flock[i]);
+                insertBoidIntoTree(qtree, &(flock[i]));
+            }
 
             int updated = updateBoid(&flock[i], &params);
+
             if ( updated != 0)
             {
                 printf("Failed to update boid with address %x with exit code %d\n", &flock[i] ,updated);
             }
 
-            if (!inserted || !(CheckCollisionPointRec(flock[i].position, qtree->bounds)))
+            if (!(CheckCollisionPointRec(flock[i].position, flock[i].node->bounds)))
             {
-                if (flock[i].node != NULL)
+                removeBoidFromNode(flock[i].node, &flock[i]);
+
+                if (!(CheckCollisionPointRec(flock[i].position, qtree->bounds)))
                 {
-                    removeBoidFromNode(flock[i].node, &flock[i]);
+                    yeetBoidBackIntoVisibleArea(&flock[i], dimensions.ScreenWidth/2, dimensions.ScreenHeight/2);
                 }
 
-                yeetBoidBackIntoVisibleArea(&flock[i], dimensions.ScreenWidth/2, dimensions.ScreenHeight/2);
                 insertBoidIntoTree(qtree, &flock[i]);
             }
         }

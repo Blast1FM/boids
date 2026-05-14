@@ -172,6 +172,42 @@ bool insertBoidIntoTree(QuadTree* qtree, Boid* boid)
     return true;
 }
 
+bool checkParentMergeEligibility(QuadTree* qtree)
+{
+    if (qtree->parent == NULL)
+    {
+        printf("Can not access parent of node %x, parent is NULL", qtree);
+        return false;
+    }
+
+    if (!qtree->isLeaf)
+    {
+        printf("Can not merge non-leaf nodes");
+        return false;
+    }
+
+    QuadTree* parent = qtree->parent;
+
+    int boidCount = 0;
+    for (int i = 0; i<4; i++)
+    {
+        boidCount += parent->children[i]->boidsPresent;
+    }
+
+    if (boidCount <= BOID_CAP_PER_NODE)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+// Merges the given node into a single node
+int mergeQtreeNodes(QuadTree* parent)
+{
+
+}
+
 QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
 {
     if (qtree == NULL)

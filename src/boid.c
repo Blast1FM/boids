@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <raylib.h>
 #include <raymath.h>
 #include "boid.h"
@@ -91,6 +92,11 @@ int updateBoid(Boid* boid, BoidParams* params)
 
     // This is a crutch, TODO devise a more sophisticated speedlimit
     boid->velocity = Vector2ClampValue(boid->velocity, 0, params->maxSpeed);
+
+    if (boid->velocity.x == 0 && boid->velocity.y == 0)
+    {
+        printf("Boid with address %x updated with velocity 0\n", boid);
+    }
 
     boid->position.x = boid->position.x + boid->velocity.x * deltaTime;
     boid->position.y = boid->position.y + boid->velocity.y * deltaTime;

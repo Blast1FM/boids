@@ -26,6 +26,8 @@ bool subdivide(QuadTree* qtree);
 bool reassignBoidsToNewChildren(QuadTree* qtree);
 bool removeBoidFromNode(QuadTree* qtree, Boid* boid);
 bool insertBoidIntoTree(QuadTree* qtree, Boid* boid);
+bool checkParentMergeEligibility(QuadTree* qtree);
+int mergeQtreeNodes(QuadTree* parent);
 QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position);
 bool tryInsertIntoNode(QuadTree* qtree, Boid* boid);
 void freeTree(QuadTree* qtree);

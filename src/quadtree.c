@@ -13,6 +13,7 @@ QuadTree* initialiseTree(Rectangle bounds, QuadTree* parent)
 
     tree->bounds = bounds;
     tree->isLeaf = true;
+    tree->parent = parent;
     // Rest should be implicitly set to 0 due to memset
     return tree;
 }
@@ -176,13 +177,13 @@ bool checkParentMergeEligibility(QuadTree* qtree)
 {
     if (qtree->parent == NULL)
     {
-        printf("Can not access parent of node %x, parent is NULL", qtree);
+        printf("Can not access parent of node %x, parent is NULL\n", qtree);
         return false;
     }
 
     if (!qtree->isLeaf)
     {
-        printf("Can not merge non-leaf nodes");
+        printf("Can not merge non-leaf nodes\n");
         return false;
     }
 
@@ -203,9 +204,44 @@ bool checkParentMergeEligibility(QuadTree* qtree)
 }
 
 // Merges the given node into a single node
+// Codes:
+// -1 - Too many boids in children
+// -2 - Failed to insert boid into the new node
 int mergeQtreeNodes(QuadTree* parent)
 {
+    BoidList list = {0};
+    for (int i = 0; i < 4; i++)
+    {
+        for(int j = 0; j < parent->children[i]->boidsPresent; j++)
+        {
+            blAppend(&list, parent->children[i]->boids[j]);
+        }
+    }
 
+    // Too many boids in the node, abort
+    if (list.count > BOID_CAP_PER_NODE)
+    {
+        return -1;
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        freeTree(parent->children[i]);
+    }
+
+    parent->isLeaf = true;
+
+    for (int i = 0; i<list.count; i++)
+    {
+        bool inserted = insertBoidIntoTree(parent, list.items[i]);
+        if (!inserted)
+        {
+            printf("Failed to insert boid %x when merging node %x\n", list.items[i], parent);
+            return -2;
+        }
+    }
+
+    return 0;
 }
 
 QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)

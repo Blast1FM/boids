@@ -102,6 +102,8 @@ int main(void)
                 insertBoidIntoTree(qtree, &(flock[i]));
             }
 
+            QuadTree* node = flock[i].node;
+
             int updated = updateBoid(&flock[i], &params);
 
             if ( updated != 0)
@@ -109,9 +111,9 @@ int main(void)
                 printf("Failed to update boid with address %x with exit code %d\n", &flock[i] ,updated);
             }
 
-            if (!(CheckCollisionPointRec(flock[i].position, flock[i].node->bounds)))
+            if (!(CheckCollisionPointRec(flock[i].position, node->bounds)))
             {
-                removeBoidFromNode(flock[i].node, &flock[i]);
+                removeBoidFromNode(node, &flock[i]);
 
                 if (!(CheckCollisionPointRec(flock[i].position, qtree->bounds)))
                 {
@@ -119,6 +121,11 @@ int main(void)
                 }
 
                 insertBoidIntoTree(qtree, &flock[i]);
+
+                if(checkParentMergeEligibility(node))
+                {
+                    mergeQtreeNodes(node->parent);
+                }
             }
         }
     

@@ -120,20 +120,20 @@ void drawBoid(Boid* boid, BoidParams* params, bool drawRadii)
 // TODO maybe think of a more sophisticated algo for this cycle hog
 void yeetBoidBackIntoVisibleArea(Boid* boid, int halfWidth, int halfHeight)
 {
-    if(boid->position.x > halfWidth)
+    if(boid->position.x >= halfWidth)
     {
-        boid->position.x = -halfWidth;
+        boid->position.x = -halfWidth+1;
     }
-    if(boid->position.x < -halfWidth)
+    if(boid->position.x <= -halfWidth)
     {
-        boid->position.x = halfWidth;
+        boid->position.x = halfWidth-1;
     }
-    if(boid->position.y > halfHeight)
+    if(boid->position.y >= halfHeight)
     {
-        boid->position.y = -halfHeight;
+        boid->position.y = -halfHeight+1;
     }
-    if(boid->position.y < -halfHeight)
+    if(boid->position.y <= -halfHeight)
     {
-        boid->position.y = halfHeight;
+        boid->position.y = halfHeight-1;
     }
 }

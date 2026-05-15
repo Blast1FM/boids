@@ -62,23 +62,34 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
         return false;
     }
 
+    bool all_boids_reassigned_successfully = true;
+
     for (int i = 0; i < qtree->boidsPresent; i++)
     {
         Boid* boid = qtree->boids[i];
+        bool current_boid_reassigned = false;
         for (int j = 0; j < 4; j++) 
         {
-            if (CheckCollisionPointRec(boid->position, qtree->children[j]->bounds)) 
+            if (PointInRectangle(boid->position, qtree->children[j]->bounds)) 
             {
-                bool inserted = insertBoidIntoTree(qtree->children[j], boid);
+                int inserted_result = insertBoidIntoTree(qtree->children[j], boid);
                 
-                if (!inserted)
+                if (inserted_result < 0)
                 {
-                    printf("Failed to insert boid with address %x when reassigning boids in node with address %x\n", boid, qtree);
-                    return false;
+                    printf("Failed to insert boid with address %p when reassigning boids in node with address %p (error code %d)\n", (void*)boid, (void*)qtree, inserted_result);
+                    boid->node = NULL; // Mark as orphan
+                    all_boids_reassigned_successfully = false;
+                } else {
+                    current_boid_reassigned = true;
                 }
-
                 break;
             }
+        }
+        if (!current_boid_reassigned) {
+            printf("Boid with address %x could not be reassigned to any child node and is now an orphan.\n", boid);
+            // Mark as orphan if no child could take it.
+            boid->node = NULL; 
+            all_boids_reassigned_successfully = false;
         }
     }
 
@@ -86,7 +97,7 @@ bool reassignBoidsToNewChildren(QuadTree* qtree)
     qtree->boidsPresent = 0;
     memset(qtree->boids, 0, sizeof(Boid*) * BOID_CAP_PER_NODE);
 
-    return true;
+    return all_boids_reassigned_successfully;
 }
 
 // Function to get boids in a given rectangle, use when queried area overlaps with multiple nodes
@@ -146,31 +157,50 @@ bool removeBoidFromNode(QuadTree* qtree, Boid* boid)
     return false;
 }
 
-bool insertBoidIntoTree(QuadTree* qtree, Boid* boid)
+// Insert a boid into the quad tree, works with subtrees too
+// Codes:
+// -2 - Attempted to insert into a non leaf node
+// -3 - Boid could not obtain node pointer for itself
+int insertBoidIntoTree(QuadTree* qtree, Boid* boid)
 {
     if (qtree == NULL || boid == NULL)
-        return false;
+        return -4;
 
     QuadTree* leafNode = findLeafForPoint(qtree, boid->position);
     if (leafNode == NULL)
     {
-        // Point lies outside every leaf; insertion is impossible.
-        return false;
+        return -1;
     }
 
-    bool inserted = tryInsertIntoNode(leafNode, boid);
+    int inserted = tryInsertIntoNode(leafNode, boid);
 
-    if (!inserted)
+    if (inserted == -1)
     {
-        subdivide(leafNode);
+        if (!subdivide(leafNode))
+        {
+            return -1;
+        }
         QuadTree* newLeaf = findLeafForPoint(leafNode, boid->position);
         if (newLeaf != NULL)
         {
             return insertBoidIntoTree(newLeaf, boid);
         }
+        return -1;
+    }
+
+    if (inserted == -2)
+    {
+        printf("Attempted to insert boid %x into a non leaf node %x\n", boid, leafNode);
+        return -2;
+    }
+
+    if (boid->node == NULL)
+    {
+        printf("Boid %x could not obtain ptr to its own node\n", boid);
+        return -3;
     }
     
-    return true;
+    return 0;
 }
 
 bool checkParentMergeEligibility(QuadTree* qtree)
@@ -190,6 +220,7 @@ bool checkParentMergeEligibility(QuadTree* qtree)
     QuadTree* parent = qtree->parent;
 
     int boidCount = 0;
+
     for (int i = 0; i<4; i++)
     {
         boidCount += parent->children[i]->boidsPresent;
@@ -218,30 +249,45 @@ int mergeQtreeNodes(QuadTree* parent)
         }
     }
 
-    // Too many boids in the node, abort
+    // Too many boids in the children nodes, abort
     if (list.count > BOID_CAP_PER_NODE)
     {
+        blDestroy(&list);
         return -1;
     }
 
     for (int i = 0; i < 4; i++)
     {
         freeTree(parent->children[i]);
+        parent->children[i] = NULL; // Nullify child pointer after freeing
     }
 
     parent->isLeaf = true;
+    parent->boidsPresent = 0; // Reset boidsPresent for the parent node
 
-    for (int i = 0; i<list.count; i++)
+    bool all_boids_merged_successfully = true;
+    for (int i = 0; i < list.count; i++)
     {
-        bool inserted = insertBoidIntoTree(parent, list.items[i]);
-        if (!inserted)
+        int inserted = insertBoidIntoTree(parent, list.items[i]);
+
+        if (inserted < 0)
         {
-            printf("Failed to insert boid %x when merging node %x\n", list.items[i], parent);
-            return -2;
+            printf("Failed to insert boid %x when merging node %x with code %d\n", list.items[i], parent, inserted);
+            list.items[i]->node = NULL; // Mark as orphan
+            all_boids_merged_successfully = false;
         }
     }
 
-    return 0;
+    blDestroy(&list);
+
+    return all_boids_merged_successfully ? 0 : -2;
+}
+
+// Helper to check if a point is within a rectangle, including edges
+bool PointInRectangle(Vector2 point, Rectangle rec)
+{
+    return (point.x >= rec.x && point.x <= rec.x + rec.width &&
+            point.y >= rec.y && point.y <= rec.y + rec.height);
 }
 
 QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
@@ -253,7 +299,7 @@ QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
     {
         for (int j = 0; j < 4; j++)
         {
-            if (CheckCollisionPointRec(position, qtree->children[j]->bounds))
+            if (PointInRectangle(position, qtree->children[j]->bounds))
             {
                 return findLeafForPoint(qtree->children[j], position);
             }
@@ -261,24 +307,39 @@ QuadTree* findLeafForPoint(QuadTree* qtree, Vector2 position)
 
         return NULL;
     }
-
     return qtree;
 }
 
 // Try to insert into a quad tree node that we know, no need to query
-bool tryInsertIntoNode(QuadTree* qtree, Boid* boid)
+// Codes:
+// -1 - Not enough space in node
+// -2 - Node is not a leaf, can not take in boids
+// -3 - Node is null
+int tryInsertIntoNode(QuadTree* qtree, Boid* boid)
 {
-    if (qtree->boidsPresent >= BOID_CAP_PER_NODE || !qtree->isLeaf)
+    if (qtree == NULL)
     {
-        // Not enough space or this isnt a leaf node
-        return false;
+        return -3;
+    }
+
+    if (qtree->boidsPresent >= BOID_CAP_PER_NODE)
+    {
+        // Not enough space
+        return -1;
+    }
+
+    if (!qtree->isLeaf)
+    {
+        // Not a leaf, can not insert
+        return -2;
     }
 
     // Place boid ptr, increment boids present
     // Possibly an out of bounds error here
     qtree->boids[qtree->boidsPresent++] = boid;
     boid->node = qtree;
-    return true;
+
+    return 0;
 }
 
 void freeTree(QuadTree* qtree)

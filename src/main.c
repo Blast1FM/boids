@@ -94,39 +94,49 @@ int main(void)
 
         for(int i = 0; i<BOID_COUNT; i++)
         {
-            // TODO
-            // I don't know yet why they're getting orphaned yet, but I will need to ensure both the node it was in and the boid itself are accounted for
+            // If the boid is an orphan, try to insert it back into the tree
             if (flock[i].node == NULL)
             {
-                printf("Boid with address %x is an orphan\n", &flock[i]);
                 insertBoidIntoTree(qtree, &(flock[i]));
+            }
+
+            // If it's still an orphan (insertion failed), skip it
+            if (flock[i].node == NULL)
+            {
+                continue;
             }
 
             QuadTree* node = flock[i].node;
 
-            int updated = updateBoid(&flock[i], &params);
-
-            if ( updated != 0)
-            {
-                printf("Failed to update boid with address %x with exit code %d\n", &flock[i] ,updated);
-            }
-
-            if (!(CheckCollisionPointRec(flock[i].position, node->bounds)))
+            // Only attempt to move the boid if it has left its current node's bounds
+            if (!(PointInRectangle(flock[i].position, node->bounds)))
             {
                 removeBoidFromNode(node, &flock[i]);
 
-                if (!(CheckCollisionPointRec(flock[i].position, qtree->bounds)))
+                // Check if it's still within the main world bounds
+                if (!(PointInRectangle(flock[i].position, qtree->bounds)))
                 {
                     yeetBoidBackIntoVisibleArea(&flock[i], dimensions.ScreenWidth/2, dimensions.ScreenHeight/2);
                 }
 
-                insertBoidIntoTree(qtree, &flock[i]);
+                // Attempt re-insertion into the main tree
+                int inserted = insertBoidIntoTree(qtree, &flock[i]);
 
-                if(checkParentMergeEligibility(node))
+                if (inserted == 0)
                 {
-                    mergeQtreeNodes(node->parent);
+                    if(checkParentMergeEligibility(node))
+                    {
+                        mergeQtreeNodes(node->parent);
+                    }
+                }
+                else
+                {
+                    // If re-insertion failed, the boid is an orphan
+                    flock[i].node = NULL;
                 }
             }
+
+            updateBoid(&flock[i], &params);
         }
     
 

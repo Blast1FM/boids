@@ -118,21 +118,21 @@ void drawBoid(Boid* boid, BoidParams* params, bool drawRadii)
 // Why is this in worldspace after all? I thought I was working with screenspace all this time
 // but it doesn't work that way
 // TODO maybe think of a more sophisticated algo for this cycle hog
-void yeetBoidBackIntoVisibleArea(Boid* boid, int halfWidth, int halfHeight)
+void teleportBoidBackIntoVisibleArea(Boid* boid, int halfWidth, int halfHeight)
 {
-    if(boid->position.x >= halfWidth)
+    if(boid->position.x >= (float)halfWidth)
     {
         boid->position.x = -halfWidth+1;
     }
-    if(boid->position.x <= -halfWidth)
+    if(boid->position.x <= (float)-halfWidth)
     {
         boid->position.x = halfWidth-1;
     }
-    if(boid->position.y >= halfHeight)
+    if(boid->position.y >= (float)halfHeight)
     {
         boid->position.y = -halfHeight+1;
     }
-    if(boid->position.y <= -halfHeight)
+    if(boid->position.y <= (float)-halfHeight)
     {
         boid->position.y = halfHeight-1;
     }

@@ -116,7 +116,7 @@ int main(void)
                 // Check if it's still within the main world bounds
                 if (!(PointInRectangle(flock[i].position, qtree->bounds)))
                 {
-                    yeetBoidBackIntoVisibleArea(&flock[i], dimensions.ScreenWidth/2, dimensions.ScreenHeight/2);
+                    teleportBoidBackIntoVisibleArea(&flock[i], dimensions.ScreenWidth/2, dimensions.ScreenHeight/2);
                 }
 
                 // Attempt re-insertion into the main tree
